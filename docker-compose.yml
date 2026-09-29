@@ -16,6 +16,10 @@ services:
       BOOTSTRAP_EXPERT_PASSWORD: "${BOOTSTRAP_EXPERT_PASSWORD:-expert12345}"
       # адреса, с которых открывают веб-интерфейс (JSON-список)
       CORS_ORIGINS: '${CORS_ORIGINS:-["http://localhost:5173","http://127.0.0.1:5173"]}'
+      # лимиты загрузки (МБ / файлов), см. docs/РАЗВЁРТЫВАНИЕ.md
+      MAX_UPLOAD_MB: "${MAX_UPLOAD_MB:-2048}"
+      MAX_UNPACKED_MB: "${MAX_UNPACKED_MB:-8192}"
+      MAX_ARCHIVE_FILES: "${MAX_ARCHIVE_FILES:-50000}"
     restart: unless-stopped
 
   frontend:

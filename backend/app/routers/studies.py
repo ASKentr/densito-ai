@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import FileResponse, Response
 from sqlmodel import Session, select, func
 
-from ai_module.batch import extract_zip
+from ai_module.batch import ArchiveLimitError, extract_zip
 from app.audit import log_action
 from app.database import get_session
 from app.dicom_utils import (
@@ -25,7 +25,7 @@ from app.models import (
 )
 from app.schemas import AnalysisArchiveOut, FindingOut, ImageOut, StudyDetail, StudyListItem
 from app.security import get_current_user
-from app.storage import make_display_id, new_study_storage_dir, safe_upload_name
+from app.storage import UploadTooLarge, make_display_id, new_study_storage_dir, safe_upload_name, save_upload
 
 router = APIRouter(prefix="/studies", tags=["studies"])
 
@@ -74,8 +74,11 @@ def upload_study(
     rel_dir, abs_dir = new_study_storage_dir()
     upload_name = safe_upload_name(file.filename)
     upload_path = os.path.join(abs_dir, upload_name)
-    with open(upload_path, "wb") as f:
-        shutil.copyfileobj(file.file, f)
+    try:
+        save_upload(file.file, upload_path)
+    except UploadTooLarge as exc:
+        shutil.rmtree(abs_dir, ignore_errors=True)
+        raise HTTPException(413, f"Слишком большой файл: {exc}")
 
     dicom_paths: list[str] = []
     skipped = 0
@@ -90,6 +93,9 @@ def upload_study(
         except zipfile.BadZipFile:
             shutil.rmtree(abs_dir, ignore_errors=True)
             raise HTTPException(400, "Повреждённый ZIP-архив")
+        except ArchiveLimitError as exc:
+            shutil.rmtree(abs_dir, ignore_errors=True)
+            raise HTTPException(413, f"Архив превышает лимит: {exc}")
         os.remove(upload_path)
         for p in sorted(extract_dir.rglob("*")):
             if p.is_file() and not p.name.startswith("._") and "__MACOSX" not in p.parts:

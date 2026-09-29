@@ -11,7 +11,8 @@
       * incomplete_field_of_view (объект касается края поля снимка),
       * incorrect_positioning (смещение/поворот относительно ожидаемого положения);
   - анатомическая область (classify_anatomical_region) -> билатеральная симметрия
-    объекта относительно центра кадра: позвоночник симметричен, бедро — нет;
+    объекта (позвоночник симметричен, бедро — нет) + модель по миниатюре снимка
+    для пограничных случаев (region_model.py);
     BodyPartExamined в реальных DICOM всегда пустой, суффиксов имён в закрытом
     тесте не будет (см. docs/ПЛАН_ПЕРЕДЕЛКИ.md, шаг 1), поэтому только по пикселям;
   - "лишние" яркие связные компоненты вне главного объекта -> artifact;
@@ -34,7 +35,7 @@ import cv2
 import numpy as np
 from scipy import ndimage
 
-from ai_module import learned_scorers
+from ai_module import learned_scorers, region_model
 from ai_module.calibration import get_pixel_spacing_mm
 from ai_module.dicom_io import (
     auto_windowed_uint8,
@@ -83,7 +84,9 @@ ARTIFACT_MAX_AREA_FRAC = 0.03          # крупнее — скорее час�
 # однозначных исследованиях обучающей выборки (ровно один DICOM-файл в
 # study-папке, область не вызывает сомнений) — там разрыв между максимумом
 # у бедра (0.20) и минимумом у позвоночника (0.457), порог взят с запасом
-# посередине.
+# посередине. Проверка на всех 499 снимках (2026-09-29) показала, что выше
+# порога попадают и 27 снимков бедра (симметрия до 0.51): ниже порога — всегда
+# бедро, выше решает модель по миниатюре (region_model.py).
 REGION_SYMMETRY_THRESHOLD = 0.30
 
 SEVERITY_PENALTY = {"low": 4, "medium": 8, "high": 15, "critical": 25}
@@ -156,7 +159,17 @@ def _mirror_iou_about_col(mask: np.ndarray, col: float) -> float:
     return float(inter / union) if union else 0.0
 
 
-def classify_anatomical_region(main_mask: np.ndarray) -> tuple[str, float, float]:
+def _symmetry(main_mask: np.ndarray) -> float:
+    """Билатеральная симметрия объекта: max по двум осям (центр кадра, центроид)."""
+    h, w = main_mask.shape
+    ys, xs = np.where(main_mask)
+    sym_frame = _mirror_iou_about_col(main_mask, w / 2.0)
+    sym_centroid = _mirror_iou_about_col(main_mask, float(xs.mean())) if len(xs) else 0.0
+    return max(sym_frame, sym_centroid)
+
+
+def classify_anatomical_region(main_mask: np.ndarray,
+                               img8: np.ndarray | None = None) -> tuple[str, float, float]:
     """Определяет область по форме объекта на снимке — без DICOM-тегов и без
     суффиксов имён файлов (в закрытом тесте их не будет, разъяснения, вопрос 15;
     BodyPartExamined в реальном датасете всегда пустой — проверено).
@@ -184,13 +197,25 @@ def classify_anatomical_region(main_mask: np.ndarray) -> tuple[str, float, float
     1 однозначный hip) комбинация даёт разрыв 0.20 (макс. hip) / 0.457
     (мин. spine) — заметно больше, чем у одной оси кадра (0.20 / 0.125).
 
+    Проверка на всех 499 снимках набора (каждый просмотрен глазами) показала:
+    ниже порога — только бедро, но выше порога, кроме позвоночника, оказались
+    27 снимков бедра (таз целиком, эндопротез, широкий захват; симметрия до
+    0.51 при минимуме у позвоночника 0.43). Поэтому выше порога, если передан
+    снимок `img8` из домена обучения и есть веса, решает модель по миниатюре
+    (region_model.py):
+    99.8% верно в кросс-валидации по исследованиям против 94.6% у одной
+    симметрии (docs/region_classifier_cv.json).
+
     Возвращает (region, confidence, symmetry) — region: "spine" | "hip".
     """
-    h, w = main_mask.shape
-    ys, xs = np.where(main_mask)
-    sym_frame = _mirror_iou_about_col(main_mask, w / 2.0)
-    sym_centroid = _mirror_iou_about_col(main_mask, float(xs.mean())) if len(xs) else 0.0
-    symmetry = max(sym_frame, sym_centroid)
+    symmetry = _symmetry(main_mask)
+    # модель обучена на снимках аппарата (сторона 150–400 px); вне этого домена
+    # (например, синтетика sample_data 768 px) — прежнее правило симметрии
+    if (symmetry >= REGION_SYMMETRY_THRESHOLD and img8 is not None
+            and region_model.available() and learned_scorers.in_domain(*img8.shape)):
+        p = region_model.spine_probability(img8)
+        region = "spine" if p >= 0.5 else "hip"
+        return region, float(np.clip(max(p, 1.0 - p), 0.5, 0.99)), symmetry
 
     region = "spine" if symmetry >= REGION_SYMMETRY_THRESHOLD else "hip"
     confidence = float(np.clip(0.5 + abs(symmetry - REGION_SYMMETRY_THRESHOLD) * 1.5, 0.5, 0.95))
@@ -303,7 +328,7 @@ def analyze_image(image_index: int, path: str) -> tuple[AIImageReport, list[AIFi
             explanation="Не удалось выделить анатомическую структуру на изображении.",
         ))
     else:
-        region, region_confidence, region_symmetry = classify_anatomical_region(main_mask)
+        region, region_confidence, region_symmetry = classify_anatomical_region(main_mask, img8)
         metrics["anatomical_region"] = region
         metrics["anatomical_region_confidence"] = region_confidence
         metrics["region_symmetry"] = region_symmetry

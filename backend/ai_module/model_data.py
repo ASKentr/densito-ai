@@ -4,8 +4,11 @@
 исследования и области, а не снимка — этот модуль сводит их к обучающим
 примерам на уровне снимка:
 
-  - область снимка (spine/hip) берётся из эвристики `classify_anatomical_region`
-    (шаг 1) — независимого способа определить регион снимка без разметки нет;
+  - область снимка (spine/hip) берётся из `classify_anatomical_region`
+    (симметрия + модель по миниатюре, `region_model.py`; разметка области
+    просмотрена глазами — `region_labels.csv`). Веса CNN и скореров
+    позвоночника обучены ДО исправления определителя области (тогда 27 снимков
+    бедра уходили в «позвоночник») — при переобучении они получат верную область;
   - для spine-снимка метки берутся из строки `spine`, если область в xlsx
     вообще оценена (иначе пример пропускается — метки нет);
   - для hip-снимка сторона (левое/правое бедро) неизвестна — надёжного
@@ -71,7 +74,7 @@ def build_examples(xlsx_path: str, studies_dir: str) -> list[ImageExample]:
                 continue
             if bbox is None:
                 continue
-            region, _, _ = classify_anatomical_region(mask)
+            region, _, _ = classify_anatomical_region(mask, img8)
 
             if region == "spine":
                 spine = lbl["spine"]

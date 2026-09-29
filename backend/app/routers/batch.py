@@ -17,7 +17,6 @@ CLI `batch_predict.py` (`ai_module/batch.py`), боевой движок — г�
 """
 from __future__ import annotations
 
-import shutil
 import tempfile
 import zipfile
 from pathlib import Path
@@ -27,12 +26,12 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from sqlmodel import Session
 
-from ai_module.batch import looks_like_dicom, result_zip_bytes, run_batch, table_bytes
+from ai_module.batch import ArchiveLimitError, looks_like_dicom, result_zip_bytes, run_batch, table_bytes
 from app.audit import log_action
 from app.database import get_session
 from app.models import User
 from app.security import get_current_user
-from app.storage import safe_upload_name
+from app.storage import UploadTooLarge, safe_upload_name, save_upload
 
 router = APIRouter(prefix="/batch", tags=["batch"])
 
@@ -56,11 +55,16 @@ def batch_process(
     upload_name = safe_upload_name(file.filename)
     with tempfile.TemporaryDirectory(prefix="densito_upload_") as tmp:
         upload_path = Path(tmp) / upload_name
-        with open(upload_path, "wb") as f:
-            shutil.copyfileobj(file.file, f)
+        try:
+            save_upload(file.file, str(upload_path))
+        except UploadTooLarge as exc:
+            raise HTTPException(413, f"Слишком большой файл: {exc}")
         if not zipfile.is_zipfile(upload_path) and not looks_like_dicom(upload_path):
             raise HTTPException(400, "Файл не распознан как zip-архив или DICOM")
-        rows = run_batch(upload_path, "hybrid", archive_label=upload_name, with_sr=sr)
+        try:
+            rows = run_batch(upload_path, "hybrid", archive_label=upload_name, with_sr=sr)
+        except ArchiveLimitError as exc:
+            raise HTTPException(413, f"Архив превышает лимит: {exc}")
 
     if not rows:
         raise HTTPException(400, "В загруженных данных не найдено ни одного DICOM-файла")

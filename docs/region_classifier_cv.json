@@ -1,0 +1,34 @@
+{
+ "n_images": 499,
+ "n_studies": 100,
+ "folds": 5,
+ "seed": 0,
+ "n_spine": 166,
+ "n_hip": 333,
+ "decision": "symmetry < 0.3 -> hip, otherwise model",
+ "cv_accuracy": 0.9979959919839679,
+ "cv_errors": [
+  "2.25.220866240977467582196609708837940253840/series_001_2_CR/A2504258893 DXA/CR DXA/CR000000.dcm"
+ ],
+ "cv_model_only_accuracy": 0.9939879759519038,
+ "min_spine_symmetry": 0.42710847302850435,
+ "symmetry_rule_accuracy": 0.9458917835671342,
+ "symmetry_rule_errors": 27,
+ "organizer_test": {
+  "CR000000_ПОП.dcm": {
+   "truth": "spine",
+   "spine_probability": 0.9995,
+   "correct": true
+  },
+  "CR000000_ППОБ.dcm": {
+   "truth": "hip",
+   "spine_probability": 0.003,
+   "correct": true
+  },
+  "CR000001_ЛПОБ.dcm": {
+   "truth": "hip",
+   "spine_probability": 0.0078,
+   "correct": true
+  }
+ }
+}

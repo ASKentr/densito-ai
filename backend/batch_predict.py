@@ -27,7 +27,7 @@ import csv
 import sys
 from pathlib import Path
 
-from ai_module.batch import COLUMNS, process_file, run_batch, write_sr_files, write_table  # noqa: F401 — process_file реэкспорт
+from ai_module.batch import COLUMNS, ArchiveLimitError, process_file, run_batch, write_sr_files, write_table  # noqa: F401 — process_file реэкспорт
 
 __all__ = ["COLUMNS", "process_file", "run_batch", "main"]
 
@@ -43,7 +43,7 @@ def main() -> int:
 
     try:
         rows = run_batch(args.input, args.engine, with_sr=bool(args.sr))
-    except FileNotFoundError as exc:
+    except (FileNotFoundError, ArchiveLimitError) as exc:
         print(f"ошибка: {exc}", file=sys.stderr)
         return 2
     write_table(rows, args.output)

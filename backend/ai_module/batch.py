@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import csv
 import io
+import os
 import tempfile
 import time
 import warnings
@@ -47,6 +48,16 @@ COLUMNS = [
 DICOM_EXTENSIONS = {".dcm", ".dicom"}
 _SKIP_NAMES = {"thumbs.db", "desktop.ini", ".ds_store"}
 MAX_NESTED_ZIP_DEPTH = 3
+
+# Защита от «ZIP-бомб»: общий бюджет на весь архив вместе с вложенными.
+# Считаются реально записанные байты — размерам из заголовков архива не верим.
+# Весь обучающий набор (499 снимков) — около 60 МБ, так что запас большой.
+MAX_UNPACKED_BYTES = int(os.environ.get("MAX_UNPACKED_MB", "8192")) * 2**20
+MAX_ARCHIVE_FILES = int(os.environ.get("MAX_ARCHIVE_FILES", "50000"))
+
+
+class ArchiveLimitError(ValueError):
+    """Архив превышает лимит объёма после распаковки или числа файлов."""
 
 
 def load_engine(name: str = "hybrid"):
@@ -164,9 +175,12 @@ def _member_name(info: zipfile.ZipInfo) -> str:
         return info.filename
 
 
-def extract_zip(zip_path: Path, dest: Path, depth: int = 0) -> None:
-    """Распаковка с защитой от выхода за dest (`../`, абсолютные пути, диски)
-    и с раскрытием вложенных zip (до MAX_NESTED_ZIP_DEPTH уровней)."""
+def extract_zip(zip_path: Path, dest: Path, depth: int = 0, budget: dict | None = None) -> None:
+    """Распаковка с защитой от выхода за dest (`../`, абсолютные пути, диски),
+    с раскрытием вложенных zip (до MAX_NESTED_ZIP_DEPTH уровней) и с общим
+    лимитом объёма и числа файлов (ArchiveLimitError)."""
+    if budget is None:
+        budget = {"bytes": 0, "files": 0}
     dest.mkdir(parents=True, exist_ok=True)
     root = dest.resolve()
     nested: list[Path] = []
@@ -182,16 +196,23 @@ def extract_zip(zip_path: Path, dest: Path, depth: int = 0) -> None:
             if info.is_dir():
                 target.mkdir(parents=True, exist_ok=True)
                 continue
+            budget["files"] += 1
+            if budget["files"] > MAX_ARCHIVE_FILES:
+                raise ArchiveLimitError(f"в архиве больше {MAX_ARCHIVE_FILES} файлов")
             target.parent.mkdir(parents=True, exist_ok=True)
             with zf.open(info) as src, open(target, "wb") as dst:
                 while chunk := src.read(1 << 20):
+                    budget["bytes"] += len(chunk)
+                    if budget["bytes"] > MAX_UNPACKED_BYTES:
+                        raise ArchiveLimitError(
+                            f"архив после распаковки больше {MAX_UNPACKED_BYTES // 2**20} МБ")
                     dst.write(chunk)
             if target.suffix.lower() == ".zip":
                 nested.append(target)
     if depth < MAX_NESTED_ZIP_DEPTH:
         for inner in nested:
             if zipfile.is_zipfile(inner):
-                extract_zip(inner, inner.with_suffix(""), depth + 1)
+                extract_zip(inner, inner.with_suffix(""), depth + 1, budget)
                 inner.unlink()
 
 

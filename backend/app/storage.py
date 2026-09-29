@@ -1,7 +1,31 @@
 import os
 import uuid
+from typing import BinaryIO
 
 from app.config import settings
+
+# Лимит одного загружаемого файла (zip или DICOM); 413 при превышении.
+MAX_UPLOAD_BYTES = int(os.environ.get("MAX_UPLOAD_MB", "2048")) * 2**20
+
+
+class UploadTooLarge(ValueError):
+    pass
+
+
+def save_upload(src: BinaryIO, path: str, limit: int | None = None) -> int:
+    """Потоковая запись загрузки с лимитом размера; при превышении файл удаляется."""
+    limit = MAX_UPLOAD_BYTES if limit is None else limit
+    total = 0
+    with open(path, "wb") as dst:
+        while chunk := src.read(1 << 20):
+            total += len(chunk)
+            if total > limit:
+                break
+            dst.write(chunk)
+    if total > limit:
+        os.remove(path)
+        raise UploadTooLarge(f"файл больше {limit // 2**20} МБ")
+    return total
 
 
 def new_study_storage_dir() -> tuple[str, str]:
