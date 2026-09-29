@@ -1,0 +1,251 @@
+[
+  {
+    "file": "01_lspine_ok.dcm",
+    "title": "Денситометрия поясничного отдела позвоночника (норма)",
+    "body_part": "LSPINE",
+    "expected_verdict": "ok",
+    "expected_category": null,
+    "ground_truth_boxes": [
+      {
+        "label": "L1",
+        "x0": 336,
+        "y0": 244,
+        "x1": 431,
+        "y1": 304
+      },
+      {
+        "label": "L2",
+        "x0": 336,
+        "y0": 312,
+        "x1": 431,
+        "y1": 372
+      },
+      {
+        "label": "L3",
+        "x0": 336,
+        "y0": 380,
+        "x1": 431,
+        "y1": 440
+      },
+      {
+        "label": "L4",
+        "x0": 336,
+        "y0": 448,
+        "x1": 431,
+        "y1": 508
+      }
+    ]
+  },
+  {
+    "file": "02_hip_ok.dcm",
+    "title": "Денситометрия тазобедренного сустава (норма)",
+    "body_part": "HIP",
+    "expected_verdict": "ok",
+    "expected_category": null,
+    "ground_truth_boxes": [
+      {
+        "label": "femur_neck",
+        "x0": 329,
+        "y0": 329,
+        "x1": 494,
+        "y1": 467
+      }
+    ]
+  },
+  {
+    "file": "03_lspine_blur.dcm",
+    "title": "Поясничный отдел, смазанное изображение (motion artifact)",
+    "body_part": "LSPINE",
+    "expected_verdict": "defect",
+    "expected_category": "low_image_quality",
+    "ground_truth_boxes": [
+      {
+        "label": "L1",
+        "x0": 336,
+        "y0": 244,
+        "x1": 431,
+        "y1": 304
+      },
+      {
+        "label": "L2",
+        "x0": 336,
+        "y0": 312,
+        "x1": 431,
+        "y1": 372
+      },
+      {
+        "label": "L3",
+        "x0": 336,
+        "y0": 380,
+        "x1": 431,
+        "y1": 440
+      },
+      {
+        "label": "L4",
+        "x0": 336,
+        "y0": 448,
+        "x1": 431,
+        "y1": 508
+      }
+    ]
+  },
+  {
+    "file": "04_lspine_underexposed.dcm",
+    "title": "Поясничный отдел, заниженная экспозиция",
+    "body_part": "LSPINE",
+    "expected_verdict": "defect",
+    "expected_category": "low_image_quality",
+    "ground_truth_boxes": [
+      {
+        "label": "L1",
+        "x0": 336,
+        "y0": 244,
+        "x1": 431,
+        "y1": 304
+      },
+      {
+        "label": "L2",
+        "x0": 336,
+        "y0": 312,
+        "x1": 431,
+        "y1": 372
+      },
+      {
+        "label": "L3",
+        "x0": 336,
+        "y0": 380,
+        "x1": 431,
+        "y1": 440
+      },
+      {
+        "label": "L4",
+        "x0": 336,
+        "y0": 448,
+        "x1": 431,
+        "y1": 508
+      }
+    ]
+  },
+  {
+    "file": "05_hip_cropped.dcm",
+    "title": "Тазобедренный сустав, область исследования обрезана",
+    "body_part": "HIP",
+    "expected_verdict": "defect",
+    "expected_category": "incomplete_field_of_view",
+    "ground_truth_boxes": [
+      {
+        "label": "femur_neck",
+        "x0": 619,
+        "y0": 329,
+        "x1": 767,
+        "y1": 467
+      }
+    ]
+  },
+  {
+    "file": "06_lspine_misaligned.dcm",
+    "title": "Поясничный отдел, неправильное позиционирование пациента",
+    "body_part": "LSPINE",
+    "expected_verdict": "defect",
+    "expected_category": "incorrect_positioning",
+    "ground_truth_boxes": [
+      {
+        "label": "L1",
+        "x0": 406,
+        "y0": 244,
+        "x1": 501,
+        "y1": 304
+      },
+      {
+        "label": "L2",
+        "x0": 406,
+        "y0": 312,
+        "x1": 501,
+        "y1": 372
+      },
+      {
+        "label": "L3",
+        "x0": 406,
+        "y0": 380,
+        "x1": 501,
+        "y1": 440
+      },
+      {
+        "label": "L4",
+        "x0": 406,
+        "y0": 448,
+        "x1": 501,
+        "y1": 508
+      }
+    ]
+  },
+  {
+    "file": "07_hip_artifact.dcm",
+    "title": "Тазобедренный сустав, посторонний артефакт в поле снимка",
+    "body_part": "HIP",
+    "expected_verdict": "defect",
+    "expected_category": "artifact",
+    "ground_truth_boxes": [
+      {
+        "label": "femur_neck",
+        "x0": 329,
+        "y0": 329,
+        "x1": 494,
+        "y1": 467
+      }
+    ]
+  },
+  {
+    "file": "08_lspine_missing_tags.dcm",
+    "title": "Поясничный отдел, технические ошибки DICOM (неполные теги)",
+    "body_part": "LSPINE",
+    "expected_verdict": "defect",
+    "expected_category": "dicom_technical_error",
+    "ground_truth_boxes": [
+      {
+        "label": "L1",
+        "x0": 336,
+        "y0": 244,
+        "x1": 431,
+        "y1": 304
+      },
+      {
+        "label": "L2",
+        "x0": 336,
+        "y0": 312,
+        "x1": 431,
+        "y1": 372
+      },
+      {
+        "label": "L3",
+        "x0": 336,
+        "y0": 380,
+        "x1": 431,
+        "y1": 440
+      },
+      {
+        "label": "L4",
+        "x0": 336,
+        "y0": 448,
+        "x1": 431,
+        "y1": 508
+      }
+    ]
+  },
+  {
+    "file": "09_hip_phi_leak.dcm",
+    "title": "Тазобедренный сустав, в файле не обезличены персональные данные",
+    "body_part": "HIP",
+    "expected_verdict": "defect",
+    "expected_category": "phi_not_removed",
+    "ground_truth_boxes": [
+      {
+        "label": "femur_neck",
+        "x0": 329,
+        "y0": 329,
+        "x1": 494,
+        "y1": 467
+      }
+    ]
+  }
+]
