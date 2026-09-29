@@ -10,6 +10,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Зависимости (версии из requirements.lock / package-lock.json)
+        run: |
+          pip install -r backend/requirements-model.txt -c backend/requirements.lock pytest
+          npm ci --prefix frontend
+      - name: Автотесты backend (включая разбор пикселей вьюера в Node.js)
+        working-directory: backend
+        run: python -m pytest tests -q
+      - name: Сборка frontend (TypeScript)
+        run: npm run build --prefix frontend
+
   docker:
     runs-on: ubuntu-24.04
     timeout-minutes: 45

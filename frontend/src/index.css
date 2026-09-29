@@ -400,3 +400,8 @@ input[type="file"] { display: none; }
   .dicom-canvas-container { height: 440px; }
   .bar-row { grid-template-columns: 1fr 1fr 32px; }
 }
+
+/* история анализов (прежние результаты ИИ и решения эксперта) */
+.history-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.history-list li { border-left: 2px solid var(--border-strong); padding-left: 10px; }
+.history-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 13px; }

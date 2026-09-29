@@ -46,10 +46,18 @@ def check_phi(ds: pydicom.FileDataset) -> list[str]:
 
 
 def get_pixel_array(ds: pydicom.FileDataset) -> np.ndarray:
+    """Пиксели с RescaleSlope/Intercept, всегда в полярности MONOCHROME2
+    (больше значение — светлее, кость светлая). MONOCHROME1 — обратная
+    полярность по стандарту DICOM (PS3.3 C.7.6.3.1.2): инвертируем в пределах
+    диапазона значений, иначе сегментация кости и все признаки считались бы по
+    негативу (внешнее ревью, замечание 7)."""
     arr = ds.pixel_array.astype(np.float64)
     slope = float(getattr(ds, "RescaleSlope", 1) or 1)
     intercept = float(getattr(ds, "RescaleIntercept", 0) or 0)
-    return arr * slope + intercept
+    arr = arr * slope + intercept
+    if str(getattr(ds, "PhotometricInterpretation", "")).strip().upper() == "MONOCHROME1":
+        arr = arr.max() + arr.min() - arr
+    return arr
 
 
 def auto_windowed_uint8(arr: np.ndarray) -> np.ndarray:

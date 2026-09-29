@@ -25,8 +25,14 @@
   heuristics   — эвристики + обученные скореры позвоночника (движок `heuristics`);
   hybrid_thr05 — то же + CNN для укладки бедра с прежним порогом 0.5;
   hybrid       — боевой движок `hybrid`: порог CNN по правилу «доля помеченных =
-                 доля нарушений». В CV порог для фолда считается только по OOF и
-                 меткам ОСТАЛЬНЫХ фолдов — данные проверочного фолда в него не входят.
+                 доля нарушений». С `--nested ../docs/cnn_nested_thresholds.json`
+                 порог фолда k берётся из вложенной CV (`nested_threshold.py`):
+                 он посчитан по внутренним OOF моделей, обученных только на
+                 обучающей части фолда k, — проверочный фолд не влияет на порог
+                 ни прямо, ни через модели (внешнее ревью 2026-09-29, замечание 3).
+  hybrid_outer_oof — прежний способ (только с --nested, для сравнения): порог по
+                 внешним OOF остальных фолдов; модели, выдавшие эти OOF, обучались
+                 в том числе на проверочном фолде — косвенная утечка.
 
 Разметка на уровне исследования -> снимка (как в model_data.py): позвоночник —
 если оценены все 3 поля; бедро — сторона снимка неизвестна, поле берётся, если
@@ -119,13 +125,23 @@ def _truth(e) -> dict:
 
 
 def _pr_auc(y, score) -> float | None:
-    """Average precision (площадь под PR-кривой, ступенчатая оценка)."""
+    """Average precision (площадь под PR-кривой, ступенчатая оценка), как
+    sklearn.metrics.average_precision_score: точки кривой — по уникальным
+    порогам, примеры с одинаковым score учитываются вместе. Раньше precision
+    считалась после каждой строки, и результат зависел от порядка примеров
+    с равным score (внешнее ревью, замечание 8)."""
     y = np.asarray(y, int)
     if y.sum() == 0:
         return None
-    y = y[np.argsort(-np.asarray(score, float), kind="mergesort")]
-    precision = np.cumsum(y) / np.arange(1, len(y) + 1)
-    return float((precision * y).sum() / y.sum())
+    s = np.asarray(score, float)
+    order = np.argsort(-s, kind="mergesort")
+    s, y = s[order], y[order]
+    last = np.r_[np.flatnonzero(np.diff(s)), len(s) - 1]   # последний индекс каждой группы равных score
+    tp = np.cumsum(y)[last]
+    fp = np.cumsum(1 - y)[last]
+    precision = tp / (tp + fp)
+    recall = tp / y.sum()
+    return float(np.sum(np.diff(np.r_[0.0, recall]) * precision))
 
 
 def _binary(y, pred) -> dict:
@@ -187,6 +203,12 @@ def _bootstrap(rows: list[dict], seed: int = 7) -> dict:
 
 def main() -> None:
     xlsx, studies_dir, raw_path = sys.argv[1], sys.argv[2], sys.argv[3]
+    nested = None
+    if "--nested" in sys.argv:
+        nested_path = Path(sys.argv[sys.argv.index("--nested") + 1])
+        nested = {f["fold"]: f["threshold"] for f in json.loads(nested_path.read_text(encoding="utf-8"))["folds"]}
+        if len(nested) != N_FOLDS:
+            raise SystemExit(f"во вложенной CV {len(nested)} фолдов из {N_FOLDS} — дождитесь nested_threshold.py")
     warnings.filterwarnings("ignore")
 
     examples = build_examples(xlsx, studies_dir)
@@ -220,6 +242,8 @@ def main() -> None:
         print("  ВНИМАНИЕ: hybrid.POSITIONING_THRESHOLD не совпадает с правилом — обновите константу", flush=True)
 
     results: dict[str, list[dict]] = {"old": [], "heuristics": [], "hybrid_thr05": [], "hybrid": []}
+    if nested:
+        results["hybrid_outer_oof"] = []
     fold_thresholds = []
 
     heuristics.USE_LEARNED_SPINE_SCORERS = False
@@ -234,7 +258,13 @@ def main() -> None:
         results["heuristics"] += [run(e, heuristics) for e in val]
         hybrid.POSITIONING_THRESHOLD = 0.5
         results["hybrid_thr05"] += [run(e, hybrid) for e in val]
-        hybrid.POSITIONING_THRESHOLD = _cnn_threshold(cnn_oof, examples, exclude_studies=val_studies)
+        outer_thr = _cnn_threshold(cnn_oof, examples, exclude_studies=val_studies)
+        if nested:
+            hybrid.POSITIONING_THRESHOLD = outer_thr
+            results["hybrid_outer_oof"] += [run(e, hybrid) for e in val]
+            hybrid.POSITIONING_THRESHOLD = nested[fold_i]
+        else:
+            hybrid.POSITIONING_THRESHOLD = outer_thr
         fold_thresholds.append(hybrid.POSITIONING_THRESHOLD)
         results["hybrid"] += [run(e, hybrid) for e in val]
         print(f"fold {fold_i}: train spine={len(tr)} val={len(val)} "
@@ -244,7 +274,10 @@ def main() -> None:
 
     report = {"n_images": len(examples), "n_studies": len(studies), "folds": N_FOLDS, "seed": SEED,
               "bootstrap": BOOTSTRAP, "cnn_threshold_rule_all_oof": rule_thr,
-              "cnn_threshold_per_fold": fold_thresholds, "configs": {}}
+              "cnn_threshold_per_fold": fold_thresholds,
+              "cnn_threshold_method": "nested" if nested else "outer_oof",
+              "pr_auc_method": "average precision по уникальным порогам (ties вместе)",
+              "configs": {}}
     for name, rows in results.items():
         cfg = {}
         for scope in ("all", "spine", "hip"):

@@ -3,27 +3,44 @@ from __future__ import annotations
 import os
 import shutil
 import zipfile
+
+import pydicom
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import FileResponse, Response
 from sqlmodel import Session, select, func
 
+from ai_module.batch import extract_zip
 from app.audit import log_action
 from app.database import get_session
 from app.dicom_utils import (
-    check_anonymization, check_required_tags, extract_metadata, is_dicom_file,
+    check_anonymization, check_required_tags, extract_metadata, is_dicom_image,
     read_dicom, render_preview_png,
 )
 from app.models import (
-    AnalysisResult, Finding, FindingSource, FindingStatus, OverallVerdict, ReviewStatus,
+    AnalysisArchive, AnalysisResult, Finding, FindingSource, FindingStatus, OverallVerdict, ReviewStatus,
     Study, StudyImage, StudyStatus, User, ViolationType,
 )
-from app.schemas import FindingOut, ImageOut, StudyDetail, StudyListItem
+from app.schemas import AnalysisArchiveOut, FindingOut, ImageOut, StudyDetail, StudyListItem
 from app.security import get_current_user
 from app.storage import make_display_id, new_study_storage_dir, safe_upload_name
 
 router = APIRouter(prefix="/studies", tags=["studies"])
+
+
+def _pixel_spacing(path: str) -> list[float] | None:
+    from ai_module.calibration import get_pixel_spacing_mm
+    try:
+        return list(get_pixel_spacing_mm(pydicom.dcmread(path, stop_before_pixels=True, force=True)))
+    except Exception:
+        return None
+
+
+# на случай записи без категории в справочнике (старые БД без внешних ключей):
+# карточка открывается, а не падает с 500
+_MISSING_VT = ViolationType(id=0, code="deleted", name_ru="Удалённая категория", category="")
 
 
 def _finding_to_out(f: Finding, vt: ViolationType, reviewer_name: str | None) -> FindingOut:
@@ -61,45 +78,73 @@ def upload_study(
         shutil.copyfileobj(file.file, f)
 
     dicom_paths: list[str] = []
+    skipped = 0
     source_kind = "dicom"
     if upload_name.lower().endswith(".zip") or zipfile.is_zipfile(upload_path):
         source_kind = "zip"
-        extract_dir = os.path.join(abs_dir, "extracted")
-        os.makedirs(extract_dir, exist_ok=True)
-        with zipfile.ZipFile(upload_path) as zf:
-            zf.extractall(extract_dir)
-        for root, _, files in os.walk(extract_dir):
-            for name in files:
-                p = os.path.join(root, name)
-                if is_dicom_file(p):
-                    dicom_paths.append(p)
-        os.remove(upload_path)
-    else:
-        if not is_dicom_file(upload_path):
+        extract_dir = Path(abs_dir) / "extracted"
+        try:
+            # та же распаковка, что в пакетной обработке: защита от выхода из папки,
+            # вложенные архивы, имена в cp866
+            extract_zip(Path(upload_path), extract_dir)
+        except zipfile.BadZipFile:
             shutil.rmtree(abs_dir, ignore_errors=True)
-            raise HTTPException(400, "Файл не распознан как DICOM или ZIP-архив с DICOM-файлами")
+            raise HTTPException(400, "Повреждённый ZIP-архив")
+        os.remove(upload_path)
+        for p in sorted(extract_dir.rglob("*")):
+            if p.is_file() and not p.name.startswith("._") and "__MACOSX" not in p.parts:
+                if is_dicom_image(str(p)):
+                    dicom_paths.append(str(p))
+                else:
+                    skipped += 1
+    else:
+        if not is_dicom_image(upload_path):
+            shutil.rmtree(abs_dir, ignore_errors=True)
+            raise HTTPException(400, "Файл не распознан как DICOM-изображение (нет размеров или "
+                                     "пиксельных данных) или ZIP-архив с такими файлами")
         dicom_paths.append(upload_path)
 
     if not dicom_paths:
         shutil.rmtree(abs_dir, ignore_errors=True)
-        raise HTTPException(400, "В загруженных данных не найдено ни одного DICOM-файла")
+        raise HTTPException(400, "В загруженных данных не найдено ни одного DICOM-изображения")
 
+    # Одна карточка = одно исследование (StudyInstanceUID). Архив с разными
+    # исследованиями раскладывается по отдельным карточкам; файл без UID — своя
+    # карточка, объединять только по принадлежности к архиву нельзя
+    # (внешнее ревью, замечание 2).
+    groups: dict[str, list[str]] = {}
+    for p in dicom_paths:
+        uid = str(getattr(read_dicom(p), "StudyInstanceUID", "") or "").strip()
+        groups.setdefault(uid or f"__no_uid__{p}", []).append(p)
+
+    created = [_create_study(session, user, paths, file.filename or "", source_kind) for paths in groups.values()]
+    for study in created:
+        log_action(session, user, "upload_study", entity="study", entity_id=study.id,
+                   details=f"{len(study.images)} файл(ов), source={source_kind}"
+                           + (f", архив разделён на {len(created)} исслед." if len(created) > 1 else "")
+                           + (f", пропущено не-DICOM: {skipped}" if skipped else ""))
+
+    detail = get_study(created[0].id, session, user)
+    detail.created_study_ids = [s.id for s in created]
+    return detail
+
+
+def _create_study(session: Session, user: User, dicom_paths: list[str], original_filename: str,
+                  source_kind: str) -> Study:
     seq = (session.exec(select(func.count()).select_from(Study)).one() or 0) + 1
     display_id = make_display_id(seq)
     while session.exec(select(Study).where(Study.display_id == display_id)).first():
         seq += 1
         display_id = make_display_id(seq)
 
-    first_ds = read_dicom(dicom_paths[0])
-    meta = extract_metadata(first_ds)
-
+    meta = extract_metadata(read_dicom(dicom_paths[0]))
     study = Study(
         display_id=display_id,
         study_date=meta["study_date"],
         body_part=meta["body_part"],
         study_description=meta["study_description"],
         modality=meta["modality"],
-        original_filename=file.filename or "",
+        original_filename=original_filename,
         source_kind=source_kind,
         status=StudyStatus.uploaded,
         uploaded_by_id=user.id,
@@ -117,12 +162,11 @@ def upload_study(
             phi_all_ok = False
             phi_report.append({"file": os.path.basename(p), "found_phi": anon["found_phi"]})
         img_meta = extract_metadata(ds)
-        image = StudyImage(
+        session.add(StudyImage(
             study_id=study.id, filename=os.path.basename(p), storage_path=p,
             sop_instance_uid=img_meta["sop_instance_uid"],
             rows=img_meta["rows"], columns=img_meta["columns"],
-        )
-        session.add(image)
+        ))
 
     study.anonymization_ok = phi_all_ok
     study.anonymization_report = {"issues": phi_report}
@@ -130,11 +174,7 @@ def upload_study(
     session.add(study)
     session.commit()
     session.refresh(study)
-
-    log_action(session, user, "upload_study", entity="study", entity_id=study.id,
-               details=f"{len(dicom_paths)} файл(ов), source={source_kind}")
-
-    return get_study(study.id, session, user)
+    return study
 
 
 @router.get("", response_model=list[StudyListItem])
@@ -191,7 +231,7 @@ def get_study(study_id: int, session: Session = Depends(get_session), user: User
     users = {u.id: u for u in session.exec(select(User)).all()}
 
     findings_out = [
-        _finding_to_out(f, vtypes[f.violation_type_id],
+        _finding_to_out(f, vtypes.get(f.violation_type_id) or _MISSING_VT,
                          users[f.reviewed_by_id].username if f.reviewed_by_id else None)
         for f in findings
     ]
@@ -204,7 +244,8 @@ def get_study(study_id: int, session: Session = Depends(get_session), user: User
         anonymization_report=study.anonymization_report,
         images=[ImageOut(id=i.id, filename=i.filename, rows=i.rows, columns=i.columns,
                           frame_index=i.frame_index, anatomical_region=i.anatomical_region,
-                          quality_prob=i.quality_prob) for i in images],
+                          quality_prob=i.quality_prob, pixel_spacing_mm=_pixel_spacing(i.storage_path))
+                for i in images],
         findings=findings_out,
         model_version=analysis.model_version if analysis else None,
     )
@@ -266,7 +307,7 @@ def get_image_sr(study_id: int, image_id: int, session: Session = Depends(get_se
     for f in findings:
         detail = f.comment.strip()
         status = _FINDING_STATUS_RU.get(f.status, "")
-        sr_findings.append(SRFinding(vtypes[f.violation_type_id].name_ru,
+        sr_findings.append(SRFinding((vtypes.get(f.violation_type_id) or _MISSING_VT).name_ru,
                                      f"{detail} ({status})" if detail else f"({status})"))
 
     ds = read_dicom(image.storage_path)
@@ -279,6 +320,47 @@ def get_image_sr(study_id: int, image_id: int, session: Session = Depends(get_se
     # имя файла — только ASCII (заголовки HTTP в latin-1; исходное имя может быть кириллическим)
     return Response(content=sr_bytes(build_sr(ds, content)), media_type="application/dicom",
                     headers={"Content-Disposition": f'attachment; filename="{study.display_id}_image{image_id}.sr.dcm"'})
+
+
+def _archive_snapshot(session: Session, study: Study, analysis: AnalysisResult | None,
+                      images: list[StudyImage], user: User) -> AnalysisArchive:
+    """Снимок текущего результата ИИ и всех находок (с решениями эксперта)."""
+    vtypes = {vt.id: vt for vt in session.exec(select(ViolationType)).all()}
+    users = {u.id: u.username for u in session.exec(select(User)).all()}
+    files = {i.id: i.filename for i in images}
+    findings = session.exec(select(Finding).where(Finding.study_id == study.id).order_by(Finding.id)).all()
+    return AnalysisArchive(
+        study_id=study.id,
+        model_version=analysis.model_version if analysis else "",
+        overall_verdict=analysis.overall_verdict.value if analysis else "",
+        analyzed_at=analysis.created_at if analysis else None,
+        review_status=study.review_status.value,
+        archived_by_id=user.id,
+        findings=[{
+            "source": f.source.value, "status": f.status.value,
+            "violation_code": vtypes[f.violation_type_id].code if f.violation_type_id in vtypes else "",
+            "violation_name": vtypes[f.violation_type_id].name_ru if f.violation_type_id in vtypes else "",
+            "severity": f.severity.value, "confidence": f.confidence, "comment": f.comment,
+            "image": files.get(f.image_id, ""),
+            "reviewed_by": users.get(f.reviewed_by_id), "reviewed_at": f.reviewed_at.isoformat() if f.reviewed_at else None,
+        } for f in findings],
+    )
+
+
+@router.get("/{study_id}/history", response_model=list[AnalysisArchiveOut],
+            summary="История анализов: прежние результаты ИИ и решения эксперта")
+def get_study_history(study_id: int, session: Session = Depends(get_session),
+                      user: User = Depends(get_current_user)):
+    if not session.get(Study, study_id):
+        raise HTTPException(404, "Исследование не найдено")
+    users = {u.id: u.username for u in session.exec(select(User)).all()}
+    rows = session.exec(select(AnalysisArchive).where(AnalysisArchive.study_id == study_id)
+                        .order_by(AnalysisArchive.id.desc())).all()
+    return [AnalysisArchiveOut(
+        id=r.id, model_version=r.model_version, overall_verdict=r.overall_verdict,
+        analyzed_at=r.analyzed_at, review_status=r.review_status, archived_at=r.archived_at,
+        archived_by=users.get(r.archived_by_id), findings=r.findings,
+    ) for r in rows]
 
 
 @router.post("/{study_id}/analyze", response_model=StudyDetail)
@@ -298,28 +380,34 @@ def analyze_study_endpoint(study_id: int, session: Session = Depends(get_session
     if not images:
         raise HTTPException(400, "В исследовании нет изображений для анализа")
 
+    prev_status = study.status
     study.status = StudyStatus.processing
     session.add(study)
     session.commit()
 
-    # удаляем предыдущие AI-находки при повторном запуске анализа (экспертные остаются)
-    old_ai_findings = session.exec(
-        select(Finding).where(Finding.study_id == study_id, Finding.source == FindingSource.ai)
-    ).all()
-    for f in old_ai_findings:
-        session.delete(f)
-    old_analysis = session.exec(select(AnalysisResult).where(AnalysisResult.study_id == study_id)).first()
-    if old_analysis:
-        session.delete(old_analysis)
-    session.commit()
-
+    # Сначала — анализ. Прежний результат и решения эксперта не трогаем, пока новый
+    # не получен (внешнее ревью, замечание 1): неудачный повтор ничего не теряет.
     try:
         result = run_ai([img.storage_path for img in images])
     except Exception as exc:
-        study.status = StudyStatus.error
+        study.status = StudyStatus.analyzed if prev_status == StudyStatus.analyzed else StudyStatus.error
         session.add(study)
         session.commit()
-        raise HTTPException(500, f"Ошибка AI-анализа: {exc}")
+        raise HTTPException(500, f"Ошибка ИИ-анализа: {exc}")
+
+    # Прежний результат ИИ вместе с решениями эксперта — в архив (история проверок),
+    # затем замена одной транзакцией.
+    old_ai_findings = session.exec(
+        select(Finding).where(Finding.study_id == study_id, Finding.source == FindingSource.ai)
+    ).all()
+    old_analysis = session.exec(select(AnalysisResult).where(AnalysisResult.study_id == study_id)).first()
+    if old_analysis or old_ai_findings:
+        session.add(_archive_snapshot(session, study, old_analysis, images, user))
+    for f in old_ai_findings:
+        session.delete(f)
+    if old_analysis:
+        session.delete(old_analysis)
+    session.flush()
 
     # anatomical_region / quality_prob — на карточку изображения (шаг 6 плана
     # переделки): та же логика, что в batch_predict.py (ai_module/quality_prob.py),
@@ -361,6 +449,10 @@ def analyze_study_endpoint(study_id: int, session: Session = Depends(get_session
     session.add(analysis)
 
     study.status = StudyStatus.analyzed
+    # новый результат ИИ требует новой проверки; находки эксперта сохраняются
+    has_expert = session.exec(select(Finding.id).where(
+        Finding.study_id == study_id, Finding.source == FindingSource.expert)).first() is not None
+    study.review_status = ReviewStatus.in_review if has_expert else ReviewStatus.not_reviewed
     study.updated_at = datetime.utcnow()
     session.add(study)
     session.commit()

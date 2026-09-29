@@ -7,7 +7,9 @@ from sqlmodel import Session, select
 
 from app.audit import log_action
 from app.database import get_session
-from app.models import Finding, FindingSource, FindingStatus, ReviewStatus, Study, StudyImage, User, ViolationType
+from app.models import (
+    Finding, FindingSource, FindingStatus, ReviewStatus, Study, StudyImage, StudyStatus, User, ViolationType,
+)
 from app.schemas import FindingCreate, FindingOut, FindingReviewAction
 from app.security import get_current_user
 
@@ -109,6 +111,15 @@ def complete_review(study_id: int, session: Session = Depends(get_session),
     study = session.get(Study, study_id)
     if not study:
         raise HTTPException(404, "Исследование не найдено")
+    # условия завершения проверяет сервер, а не только интерфейс (внешнее ревью, замечание 1)
+    if study.status != StudyStatus.analyzed or study.analysis is None:
+        raise HTTPException(409, "Исследование ещё не проанализировано — завершать проверку нечего")
+    pending = session.exec(select(Finding.id).where(
+        Finding.study_id == study_id, Finding.source == FindingSource.ai,
+        Finding.status == FindingStatus.pending)).all()
+    if pending:
+        raise HTTPException(409, f"Остались непроверенные находки ИИ: {len(pending)}. "
+                                 "Подтвердите, отклоните или измените их перед завершением проверки")
     study.review_status = ReviewStatus.reviewed
     study.updated_at = datetime.utcnow()
     session.add(study)

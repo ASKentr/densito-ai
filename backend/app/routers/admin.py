@@ -63,6 +63,12 @@ def delete_violation_type(vt_id: int, session: Session = Depends(get_session), u
     if vt.is_system:
         raise HTTPException(400, "Системный тип нарушения нельзя удалить, только деактивировать "
                                   "(is_active=false) — иначе AI-модуль не сможет на него ссылаться")
+    # на используемую категорию ссылаются находки (история проверок) — только отключение
+    # (внешнее ревью, замечание 4: удаление ломало карточку исследования, HTTP 500)
+    used = session.exec(select(Finding.id).where(Finding.violation_type_id == vt_id)).first()
+    if used is not None:
+        raise HTTPException(409, "Категория используется в находках — удалить нельзя, "
+                                 "её можно только отключить (is_active=false)")
     session.delete(vt)
     session.commit()
     log_action(session, user, "delete_violation_type", entity="violation_type", entity_id=vt_id)

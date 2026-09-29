@@ -101,6 +101,10 @@ class ImageOut(BaseModel):
     frame_index: int
     anatomical_region: Optional[str] = None
     quality_prob: Optional[float] = None
+    # размер пикселя (мм по строкам, мм по столбцам) — тот же, что использует ИИ
+    # (ai_module/calibration.py, с резервным значением датасета): вьюер рисует
+    # снимок в физических пропорциях (внешнее ревью, замечание 5)
+    pixel_spacing_mm: Optional[list[float]] = None
 
 
 class StudyListItem(BaseModel):
@@ -126,6 +130,20 @@ class StudyDetail(StudyListItem):
     images: list[ImageOut]
     findings: list[FindingOut]
     model_version: Optional[str] = None
+    # только в ответе на загрузку: если архив содержал несколько исследований
+    # (разные StudyInstanceUID), по каждому создана своя карточка
+    created_study_ids: list[int] = []
+
+
+class AnalysisArchiveOut(BaseModel):
+    id: int
+    model_version: str
+    overall_verdict: str
+    analyzed_at: Optional[datetime] = None
+    review_status: str
+    archived_at: datetime
+    archived_by: Optional[str] = None
+    findings: list[dict]
 
 
 class AuditLogOut(BaseModel):

@@ -171,6 +171,22 @@ class Finding(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+class AnalysisArchive(SQLModel, table=True):
+    """Снимок прежнего результата ИИ и решений эксперта, сохраняемый перед повторным
+    анализом (внешнее ревью 2026-09-29, замечание 1): история проверок не теряется.
+    findings — список словарей: источник, статус, категория, критичность, уверенность,
+    комментарий, кто и когда проверил, файл снимка."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    study_id: int = Field(foreign_key="study.id", index=True)
+    model_version: str = ""
+    overall_verdict: str = ""
+    analyzed_at: Optional[datetime] = None
+    review_status: str = ""
+    archived_at: datetime = Field(default_factory=datetime.utcnow)
+    archived_by_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    findings: list = Field(default_factory=list, sa_column=Column(JSON))
+
+
 class AuditLogEntry(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")

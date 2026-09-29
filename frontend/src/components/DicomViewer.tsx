@@ -1,78 +1,7 @@
-import dicomParser from "dicom-parser";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchImageRawArrayBuffer } from "../api/client";
 import type { FindingOut } from "../api/types";
-
-interface DicomPixelData {
-  rows: number;
-  cols: number;
-  pixels: Int32Array; // уже с учётом RescaleSlope/Intercept
-  defaultWc: number;
-  defaultWw: number;
-  minVal: number;
-  maxVal: number;
-}
-
-function parseDicomPixels(buf: ArrayBuffer): DicomPixelData {
-  const byteArray = new Uint8Array(buf);
-  const dataSet = dicomParser.parseDicom(byteArray);
-
-  const rows = dataSet.uint16("x00280010") ?? 0;
-  const cols = dataSet.uint16("x00280011") ?? 0;
-  const bitsAllocated = dataSet.uint16("x00280100") ?? 16;
-  const pixelRepresentation = dataSet.uint16("x00280103") ?? 0;
-  const slope = parseFloat(dataSet.string("x00281053") ?? "1") || 1;
-  const intercept = parseFloat(dataSet.string("x00281052") ?? "0") || 0;
-
-  const el = dataSet.elements.x7fe00010;
-  if (!el) throw new Error("В файле отсутствует PixelData");
-
-  let raw: Int32Array;
-  if (bitsAllocated === 16) {
-    const arr = pixelRepresentation === 1
-      ? new Int16Array(byteArray.buffer, byteArray.byteOffset + el.dataOffset, el.length / 2)
-      : new Uint16Array(byteArray.buffer, byteArray.byteOffset + el.dataOffset, el.length / 2);
-    raw = Int32Array.from(arr);
-  } else {
-    const arr = new Uint8Array(byteArray.buffer, byteArray.byteOffset + el.dataOffset, el.length);
-    raw = Int32Array.from(arr);
-  }
-  const pixels = raw.map((v) => v * slope + intercept);
-
-  let minVal = Infinity, maxVal = -Infinity;
-  for (let i = 0; i < pixels.length; i++) {
-    if (pixels[i] < minVal) minVal = pixels[i];
-    if (pixels[i] > maxVal) maxVal = pixels[i];
-  }
-
-  const wcStr = dataSet.string("x00281050");
-  const wwStr = dataSet.string("x00281051");
-  const defaultWc = wcStr ? parseFloat(wcStr.split("\\")[0]) : (minVal + maxVal) / 2;
-  const defaultWw = wwStr ? parseFloat(wwStr.split("\\")[0]) : Math.max(maxVal - minVal, 1);
-
-  return { rows, cols, pixels, defaultWc, defaultWw, minVal, maxVal };
-}
-
-function renderWindowedImageData(data: DicomPixelData, wc: number, ww: number): ImageData {
-  const { rows, cols, pixels } = data;
-  const out = new ImageData(cols, rows);
-  const w = Math.max(ww, 1);
-  const lo = wc - 0.5 - (w - 1) / 2;
-  const hi = wc - 0.5 + (w - 1) / 2;
-  for (let i = 0; i < pixels.length; i++) {
-    const x = pixels[i];
-    let v: number;
-    if (x <= lo) v = 0;
-    else if (x > hi) v = 255;
-    else v = ((x - (wc - 0.5)) / (w - 1) + 0.5) * 255;
-    const o = i * 4;
-    out.data[o] = v;
-    out.data[o + 1] = v;
-    out.data[o + 2] = v;
-    out.data[o + 3] = 255;
-  }
-  return out;
-}
+import { type DicomPixelData, parseDicomPixels, renderWindowedImageData } from "./dicomPixels";
 
 const SEVERITY_COLOR: Record<string, string> = {
   low: "#eab308", medium: "#f97316", high: "#ef4444", critical: "#b91c1c",
@@ -83,11 +12,16 @@ interface Props {
   imageId: number;
   findings: FindingOut[];
   drawMode: boolean;
+  /** [мм по строкам (Y), мм по столбцам (X)] — рисуем в физических пропорциях */
+  pixelSpacing?: number[] | null;
   onRegionDrawn?: (bbox: { x: number; y: number; w: number; h: number }) => void;
   onExitDrawMode?: () => void;
 }
 
-export function DicomViewer({ studyId, imageId, findings, drawMode, onRegionDrawn, onExitDrawMode }: Props) {
+export function DicomViewer({ studyId, imageId, findings, drawMode, pixelSpacing, onRegionDrawn, onExitDrawMode }: Props) {
+  // высота пикселя относительно ширины: 1,05 / 0,6 = 1,75 для снимков датасета
+  // (внешнее ревью, замечание 5: раньше пиксель рисовался квадратным)
+  const aspect = pixelSpacing && pixelSpacing[0] > 0 && pixelSpacing[1] > 0 ? pixelSpacing[0] / pixelSpacing[1] : 1;
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const offscreenRef = useRef<HTMLCanvasElement | null>(null);
@@ -122,12 +56,12 @@ export function DicomViewer({ studyId, imageId, findings, drawMode, onRegionDraw
         if (container) {
           const fitScale = Math.min(
             (container.clientWidth - 16) / parsed.cols,
-            (container.clientHeight - 16) / parsed.rows
+            (container.clientHeight - 16) / (parsed.rows * aspect)
           );
           setScale(fitScale > 0 ? fitScale : 1);
           setOffset({
             x: (container.clientWidth - parsed.cols * fitScale) / 2,
-            y: (container.clientHeight - parsed.rows * fitScale) / 2,
+            y: (container.clientHeight - parsed.rows * aspect * fitScale) / 2,
           });
         }
         setLoading(false);
@@ -139,7 +73,7 @@ export function DicomViewer({ studyId, imageId, findings, drawMode, onRegionDraw
         }
       });
     return () => { cancelled = true; };
-  }, [studyId, imageId]);
+  }, [studyId, imageId, aspect]);
 
   const redraw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -166,15 +100,15 @@ export function DicomViewer({ studyId, imageId, findings, drawMode, onRegionDraw
     ctx.fillStyle = "#0b0f14";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(off, offset.x, offset.y, data.cols * scale, data.rows * scale);
+    ctx.drawImage(off, offset.x, offset.y, data.cols * scale, data.rows * scale * aspect);
 
     // оверлей находок
     for (const f of findings) {
       if (f.bbox_x == null || f.bbox_y == null || f.bbox_w == null || f.bbox_h == null) continue;
       const x = offset.x + f.bbox_x * data.cols * scale;
-      const y = offset.y + f.bbox_y * data.rows * scale;
+      const y = offset.y + f.bbox_y * data.rows * scale * aspect;
       const w = f.bbox_w * data.cols * scale;
-      const h = f.bbox_h * data.rows * scale;
+      const h = f.bbox_h * data.rows * scale * aspect;
       const color = SEVERITY_COLOR[f.severity] ?? "#f97316";
       ctx.strokeStyle = color;
       ctx.lineWidth = f.source === "ai" ? 2 : 3;
@@ -200,7 +134,7 @@ export function DicomViewer({ studyId, imageId, findings, drawMode, onRegionDraw
       ctx.strokeRect(Math.min(startX, curX), Math.min(startY, curY), Math.abs(curX - startX), Math.abs(curY - startY));
       ctx.setLineDash([]);
     }
-  }, [wc, ww, scale, offset, findings]);
+  }, [wc, ww, scale, offset, findings, aspect]);
 
   useEffect(() => { redraw(); }, [redraw]);
 
@@ -265,9 +199,9 @@ export function DicomViewer({ studyId, imageId, findings, drawMode, onRegionDraw
       const data = dataRef.current;
       if (data && onRegionDrawn) {
         const x0 = (Math.min(drawState.current.startX, drawState.current.curX) - offset.x) / (data.cols * scale);
-        const y0 = (Math.min(drawState.current.startY, drawState.current.curY) - offset.y) / (data.rows * scale);
+        const y0 = (Math.min(drawState.current.startY, drawState.current.curY) - offset.y) / (data.rows * scale * aspect);
         const x1 = (Math.max(drawState.current.startX, drawState.current.curX) - offset.x) / (data.cols * scale);
-        const y1 = (Math.max(drawState.current.startY, drawState.current.curY) - offset.y) / (data.rows * scale);
+        const y1 = (Math.max(drawState.current.startY, drawState.current.curY) - offset.y) / (data.rows * scale * aspect);
         if (x1 - x0 > 0.005 && y1 - y0 > 0.005) {
           onRegionDrawn({ x: Math.max(0, x0), y: Math.max(0, y0), w: Math.min(1, x1) - Math.max(0, x0), h: Math.min(1, y1) - Math.max(0, y0) });
         }
@@ -282,11 +216,11 @@ export function DicomViewer({ studyId, imageId, findings, drawMode, onRegionDraw
     const data = dataRef.current;
     const container = containerRef.current;
     if (!data || !container) return;
-    const fitScale = Math.min((container.clientWidth - 16) / data.cols, (container.clientHeight - 16) / data.rows);
+    const fitScale = Math.min((container.clientWidth - 16) / data.cols, (container.clientHeight - 16) / (data.rows * aspect));
     setScale(fitScale > 0 ? fitScale : 1);
     setOffset({
       x: (container.clientWidth - data.cols * fitScale) / 2,
-      y: (container.clientHeight - data.rows * fitScale) / 2,
+      y: (container.clientHeight - data.rows * aspect * fitScale) / 2,
     });
   }
 

@@ -12,6 +12,7 @@ export function StudiesListPage() {
   const [filters, setFilters] = useState<StudyFilters>({});
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadNotice, setUploadNotice] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const reload = useCallback(() => {
@@ -27,10 +28,17 @@ export function StudiesListPage() {
     if (!file) return;
     setUploading(true);
     setUploadError(null);
+    setUploadNotice(null);
     try {
       const study = await uploadStudy(file);
       reload();
-      navigate(`/studies/${study.id}`);
+      const created = study.created_study_ids ?? [study.id];
+      if (created.length > 1) {
+        // архив с разными исследованиями (StudyInstanceUID) — по карточке на каждое
+        setUploadNotice(`Архив содержал ${created.length} разных исследования — создано ${created.length} карточек.`);
+      } else {
+        navigate(`/studies/${study.id}`);
+      }
     } catch (err: any) {
       setUploadError(err?.response?.data?.detail || "Не удалось загрузить файл");
     } finally {
@@ -61,6 +69,7 @@ export function StudiesListPage() {
         </div>
       </div>
       {uploadError && <div className="error-text">{uploadError}</div>}
+      {uploadNotice && <div className="result-box" style={{ marginTop: 0, marginBottom: 16 }}><Icon name="layers" /> {uploadNotice}</div>}
 
       <div className="stats-grid">
         <div className="stat-card">

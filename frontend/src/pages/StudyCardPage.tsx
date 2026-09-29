@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { aiBlockReason, useAiStatus } from "../api/aiStatus";
-import { analyzeStudy, completeReview, downloadImageSr, getStudy, listViolationTypes } from "../api/client";
+import { analyzeStudy, completeReview, downloadImageSr, getStudy, getStudyHistory, listViolationTypes } from "../api/client";
 import { DicomViewer } from "../components/DicomViewer";
 import { FindingsPanel } from "../components/FindingsPanel";
 import { formatDicomDate, Icon, ProbMeter, REVIEW_LABELS, STATUS_LABELS, VERDICT_LABELS } from "../components/ui";
-import type { StudyDetail, ViolationType } from "../api/types";
+import type { AnalysisArchive, StudyDetail, ViolationType } from "../api/types";
 
 export function StudyCardPage() {
   const { id } = useParams();
@@ -19,6 +19,7 @@ export function StudyCardPage() {
   const [pendingBbox, setPendingBbox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [history, setHistory] = useState<AnalysisArchive[]>([]);
   const [error, setError] = useState<string | null>(null);
   const aiBlock = aiBlockReason(useAiStatus());
 
@@ -27,6 +28,7 @@ export function StudyCardPage() {
       setStudy(s);
       setActiveImageId((prev) => prev ?? s.images[0]?.id ?? null);
     });
+    getStudyHistory(studyId).then(setHistory).catch(() => setHistory([]));
   }, [studyId]);
 
   useEffect(() => { reload(); }, [reload]);
@@ -38,6 +40,7 @@ export function StudyCardPage() {
     try {
       const s = await analyzeStudy(studyId);
       setStudy(s);
+      getStudyHistory(studyId).then(setHistory).catch(() => undefined);
     } catch (e: any) {
       setError(e?.response?.data?.detail || "Ошибка запуска ИИ-анализа");
     } finally {
@@ -46,7 +49,12 @@ export function StudyCardPage() {
   }
 
   async function handleCompleteReview() {
-    await completeReview(studyId);
+    setError(null);
+    try {
+      await completeReview(studyId);
+    } catch (e: any) {
+      setError(e?.response?.data?.detail || "Не удалось завершить проверку");
+    }
     reload();
   }
 
@@ -68,6 +76,7 @@ export function StudyCardPage() {
   const imageFindings = study.findings.filter((f) => f.image_id === activeImageId);
   const activeImage = study.images.find((img) => img.id === activeImageId) ?? null;
   const analyzed = study.status === "analyzed";
+  const pendingAi = study.findings.filter((f) => f.source === "ai" && f.status === "pending").length;
 
   return (
     <div className="study-card-page">
@@ -94,12 +103,18 @@ export function StudyCardPage() {
             {analyzing ? "Анализ выполняется…" : analyzed ? "Повторить ИИ-анализ" : "Запустить ИИ-анализ"}
           </button>
           <button type="button" className="btn-primary" onClick={handleCompleteReview}
-                  disabled={study.review_status === "reviewed" || !analyzed}>
+                  disabled={study.review_status === "reviewed" || !analyzed || pendingAi > 0}
+                  title={pendingAi > 0 ? `Сначала проверьте находки ИИ: осталось ${pendingAi}` : undefined}>
             <Icon name="check" />
             {study.review_status === "reviewed" ? "Проверка завершена" : "Завершить проверку"}
           </button>
         </div>
       </div>
+      {analyzed && pendingAi > 0 && study.review_status !== "reviewed" && (
+        <div className="small muted" style={{ margin: "-6px 0 12px" }}>
+          Чтобы завершить проверку, подтвердите или отклоните находки ИИ — осталось: {pendingAi}
+        </div>
+      )}
       {aiBlock && <div className="block-hint" style={{ margin: "-6px 0 12px" }}>ИИ-анализ сейчас недоступен: {aiBlock}</div>}
       {error && <div className="error-text">{error}</div>}
 
@@ -175,6 +190,7 @@ export function StudyCardPage() {
               imageId={activeImageId}
               findings={imageFindings}
               drawMode={drawMode}
+              pixelSpacing={activeImage?.pixel_spacing_mm}
               onRegionDrawn={(bbox) => { setPendingBbox(bbox); setDrawMode(false); }}
               onExitDrawMode={() => setDrawMode(false)}
             />
@@ -195,6 +211,39 @@ export function StudyCardPage() {
               onChanged={reload}
             />
           </div>
+          {history.length > 0 && (
+            <div className="card card-pad">
+              <div className="section-title">История анализов · {history.length}</div>
+              <p className="small muted" style={{ marginBottom: 10 }}>
+                Прежние результаты ИИ и решения эксперта сохраняются при повторном анализе.
+              </p>
+              <ul className="history-list">
+                {history.map((h) => {
+                  const ai = h.findings.filter((f) => f.source === "ai");
+                  const count = (st: string) => ai.filter((f) => f.status === st).length;
+                  return (
+                    <li key={h.id}>
+                      <div className="history-head">
+                        <b>{new Date(h.archived_at + (h.archived_at.endsWith("Z") ? "" : "Z")).toLocaleString("ru-RU")}</b>
+                        <span className="mono small muted">{h.model_version}</span>
+                      </div>
+                      <div className="small muted">
+                        Находок ИИ: {ai.length} · подтверждено {count("confirmed")} · отклонено {count("rejected")}
+                        {count("modified") ? ` · изменено ${count("modified")}` : ""} · не проверено {count("pending")}
+                        {h.review_status === "reviewed" ? " · проверка была завершена" : ""}
+                      </div>
+                      {ai.filter((f) => f.status !== "pending").map((f, i) => (
+                        <div key={i} className="small" style={{ marginTop: 4 }}>
+                          {f.status === "rejected" ? "✕" : "✓"} {f.violation_name} — {f.reviewed_by ?? "эксперт"}
+                          {f.image ? <span className="muted"> · {f.image}</span> : null}
+                        </div>
+                      ))}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>

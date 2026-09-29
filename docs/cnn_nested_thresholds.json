@@ -1,0 +1,17 @@
+{
+  "method": "nested CV: порог по внутренним OOF обучающей части внешнего фолда",
+  "rule": "квантиль уровня 1 - доля нарушений укладки бедра",
+  "outer_folds": 5,
+  "inner_folds": 4,
+  "seed": 42,
+  "folds": [
+    {
+      "fold": 0,
+      "threshold": 0.20413136351399333,
+      "n_hip_labeled": 205,
+      "prevalence": 0.2097560975609756,
+      "train_studies": 80,
+      "seconds": 568
+    }
+  ]
+}

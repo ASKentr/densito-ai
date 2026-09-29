@@ -52,6 +52,7 @@ export interface ImageOut {
   frame_index: number;
   anatomical_region: string | null;
   quality_prob: number | null;
+  pixel_spacing_mm: number[] | null;
 }
 
 export interface StudyListItem {
@@ -77,6 +78,18 @@ export interface StudyDetail extends StudyListItem {
   images: ImageOut[];
   findings: FindingOut[];
   model_version: string | null;
+  created_study_ids?: number[];
+}
+
+export interface ArchivedFinding {
+  source: FindingSource; status: FindingStatus; violation_code: string; violation_name: string;
+  severity: Severity; confidence: number | null; comment: string; image: string;
+  reviewed_by: string | null; reviewed_at: string | null;
+}
+
+export interface AnalysisArchive {
+  id: number; model_version: string; overall_verdict: string; analyzed_at: string | null;
+  review_status: string; archived_at: string; archived_by: string | null; findings: ArchivedFinding[];
 }
 
 export interface AuditLogEntryOut {

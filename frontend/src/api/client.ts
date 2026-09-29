@@ -1,6 +1,6 @@
 import axios from "axios";
 import type {
-  AuditLogEntryOut, FindingOut, StatsOut, StudyDetail, StudyListItem, UserOut, ViolationType,
+  AnalysisArchive, AuditLogEntryOut, FindingOut, StatsOut, StudyDetail, StudyListItem, UserOut, ViolationType,
 } from "./types";
 
 export const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
@@ -75,6 +75,11 @@ export async function uploadStudy(file: File, onProgress?: (pct: number) => void
       if (onProgress && evt.total) onProgress(Math.round((evt.loaded / evt.total) * 100));
     },
   });
+  return data;
+}
+
+export async function getStudyHistory(id: number): Promise<AnalysisArchive[]> {
+  const { data } = await client.get(`/studies/${id}/history`);
   return data;
 }
 

@@ -44,6 +44,18 @@ def is_dicom_file(path: str) -> bool:
         return False
 
 
+def is_dicom_image(path: str) -> bool:
+    """Файл — DICOM-изображение, которое можно показать и проанализировать:
+    успешного dcmread(force=True) мало — пустой или мусорный файл читается как
+    пустой Dataset (внешнее ревью, замечание 9). Нужны размеры и пиксельные данные."""
+    try:
+        ds = pydicom.dcmread(path, force=True)
+        rows, cols = int(getattr(ds, "Rows", 0) or 0), int(getattr(ds, "Columns", 0) or 0)
+        return rows > 0 and cols > 0 and "PixelData" in ds and len(ds.PixelData) > 0
+    except Exception:
+        return False
+
+
 def check_anonymization(ds: pydicom.FileDataset) -> dict[str, Any]:
     found = []
     for tag, label in PHI_TAGS.items():
@@ -110,6 +122,8 @@ def render_preview_png(ds: pydicom.FileDataset, max_size: int = 1024) -> bytes:
     ww = float(ww) if ww is not None else None
 
     img8 = windowed_uint8(arr, wc, ww)
+    if str(getattr(ds, "PhotometricInterpretation", "")).strip().upper() == "MONOCHROME1":
+        img8 = 255 - img8  # окно применяется к исходным значениям, затем инверсия (PS3.3 C.7.6.3.1.2)
     img = Image.fromarray(img8, mode="L")
     if max(img.size) > max_size:
         img.thumbnail((max_size, max_size))
