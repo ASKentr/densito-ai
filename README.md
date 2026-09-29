@@ -76,7 +76,7 @@ DICOM / zip-архив ──► определение области ──►
 Docker Compose.
 
 ```bash
-git clone <ссылка на репозиторий> densito-ai
+git clone https://github.com/ASKentr/densito-ai.git densito-ai
 cd densito-ai
 ./run.sh up
 ```
