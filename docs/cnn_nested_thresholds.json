@@ -12,6 +12,38 @@
       "prevalence": 0.2097560975609756,
       "train_studies": 80,
       "seconds": 568
+    },
+    {
+      "fold": 1,
+      "threshold": 0.20082885026931763,
+      "n_hip_labeled": 212,
+      "prevalence": 0.18867924528301888,
+      "train_studies": 80,
+      "seconds": 651
+    },
+    {
+      "fold": 2,
+      "threshold": 0.7303237318992615,
+      "n_hip_labeled": 216,
+      "prevalence": 0.18055555555555555,
+      "train_studies": 80,
+      "seconds": 542
+    },
+    {
+      "fold": 3,
+      "threshold": 0.29252398014068604,
+      "n_hip_labeled": 210,
+      "prevalence": 0.1,
+      "train_studies": 80,
+      "seconds": 545
+    },
+    {
+      "fold": 4,
+      "threshold": 0.4126478242340373,
+      "n_hip_labeled": 201,
+      "prevalence": 0.22388059701492538,
+      "train_studies": 80,
+      "seconds": 541
     }
   ]
 }
