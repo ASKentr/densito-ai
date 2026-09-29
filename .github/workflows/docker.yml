@@ -23,7 +23,7 @@ jobs:
           node-version: "22"
       - name: Зависимости (версии из requirements.lock / package-lock.json)
         run: |
-          pip install -r backend/requirements-model.txt -c backend/requirements.lock pytest
+          pip install -r backend/requirements-model.txt -r backend/requirements-dev.txt -c backend/requirements.lock
           npm ci --prefix frontend
       - name: Автотесты backend (включая разбор пикселей вьюера в Node.js)
         working-directory: backend

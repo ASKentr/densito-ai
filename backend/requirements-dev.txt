@@ -1,0 +1,4 @@
+# Зависимости для автотестов (в образ не входят):
+#   pip install -r requirements-model.txt -r requirements-dev.txt -c requirements.lock
+pytest==9.1.1
+httpx==0.28.1   # нужен fastapi.testclient

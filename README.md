@@ -377,6 +377,7 @@ curl -X POST "http://localhost:8000/batch?format=xlsx" -H "Authorization: Bearer
 
 ```bash
 cd backend
-python -m pytest tests/ -q        # 39 тестов: AI-модуль, пакетная обработка, zip, API /batch, DICOM SR, самопроверка ИИ-модуля, безопасность загрузки
+pip install -r requirements-dev.txt -c requirements.lock   # pytest, httpx
+python -m pytest tests/ -q        # 50 тестов: AI-модуль, пакетная обработка, zip, API, DICOM SR, самопроверка ИИ-модуля, регрессии по внешнему ревью, разбор пикселей вьюера (нужен Node.js), безопасность загрузки
 python tests/smoke_test_api.py    # сквозной сценарий через HTTP API (нужен запущенный backend)
 ```
