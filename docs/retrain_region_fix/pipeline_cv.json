@@ -1,0 +1,1763 @@
+{
+ "n_images": 495,
+ "n_studies": 100,
+ "folds": 5,
+ "seed": 42,
+ "bootstrap": 2000,
+ "cnn_threshold_rule_all_oof": 0.3646745326468103,
+ "cnn_threshold_per_fold": [
+  0.38257503509521484,
+  0.38257503509521484,
+  0.29299402236938477,
+  0.6879046559333801,
+  0.20097312365220565
+ ],
+ "cnn_threshold_method": "outer_oof",
+ "pr_auc_method": "average precision по уникальным порогам (ties вместе)",
+ "configs": {
+  "old": {
+   "all": {
+    "quality_prob_roc_auc": 0.4906091077207582,
+    "quality_prob_pr_auc": 0.2600213198022811,
+    "quality_class_f1": 0.2532751091703057,
+    "quality_class_sensitivity": 0.25892857142857145,
+    "quality_class_specificity": 0.7152103559870551,
+    "quality_class_precision": 0.24786324786324787,
+    "quality_class_balanced_accuracy": 0.48706946370781323,
+    "quality_class_n": 421,
+    "quality_class_n_positive": 112,
+    "violation_type_macro_f1": 0.11944444444444446,
+    "per_type": {
+     "spine.incorrect_positioning": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.967948717948718,
+      "precision": 0.0,
+      "balanced_accuracy": 0.483974358974359,
+      "n": 166,
+      "n_positive": 10
+     },
+     "spine.axis_misaligned": {
+      "f1": 0.37500000000000006,
+      "sensitivity": 0.35294117647058826,
+      "specificity": 0.9395973154362416,
+      "precision": 0.4,
+      "balanced_accuracy": 0.646269245953415,
+      "n": 166,
+      "n_positive": 17
+     },
+     "spine.artifact": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.9770992366412213,
+      "precision": 0.0,
+      "balanced_accuracy": 0.48854961832061067,
+      "n": 166,
+      "n_positive": 35
+     },
+     "hip.incorrect_positioning": {
+      "f1": 0.2222222222222222,
+      "sensitivity": 0.2962962962962963,
+      "specificity": 0.6740088105726872,
+      "precision": 0.17777777777777778,
+      "balanced_accuracy": 0.48515255343449176,
+      "n": 281,
+      "n_positive": 54
+     },
+     "hip.incomplete_field_of_view": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.9634551495016611,
+      "precision": 0.0,
+      "balanced_accuracy": 0.48172757475083056,
+      "n": 303,
+      "n_positive": 2
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.38287302067383927,
+      0.5914990668800905
+     ],
+     "quality_prob_pr_auc": [
+      0.17128190685926611,
+      0.40315133193883085
+     ],
+     "quality_class_f1": [
+      0.11502528445006321,
+      0.39299053072010565
+     ],
+     "quality_class_sensitivity": [
+      0.11449209856702826,
+      0.4067887409200968
+     ],
+     "quality_class_specificity": [
+      0.6114914779585727,
+      0.8149352603475415
+     ],
+     "quality_class_precision": [
+      0.10375656487064774,
+      0.42107677450506986
+     ],
+     "quality_class_balanced_accuracy": [
+      0.40086794495920947,
+      0.5770119905496374
+     ],
+     "violation_type_macro_f1": [
+      0.02744846656611363,
+      0.18375921419881192
+     ],
+     "spine.incorrect_positioning.f1": [
+      0.0,
+      0.0
+     ],
+     "spine.incorrect_positioning.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "spine.incorrect_positioning.specificity": [
+      0.9314749920356801,
+      0.994286525974026
+     ],
+     "spine.incorrect_positioning.precision": [
+      0.0,
+      0.0
+     ],
+     "spine.incorrect_positioning.balanced_accuracy": [
+      0.4656578528193692,
+      0.49714529220779224
+     ],
+     "spine.axis_misaligned.f1": [
+      0.0,
+      0.6818181818181818
+     ],
+     "spine.axis_misaligned.sensitivity": [
+      0.0,
+      0.6923076923076923
+     ],
+     "spine.axis_misaligned.specificity": [
+      0.875,
+      0.9876580849141824
+     ],
+     "spine.axis_misaligned.precision": [
+      0.0,
+      0.8181818181818182
+     ],
+     "spine.axis_misaligned.balanced_accuracy": [
+      0.45516407119021135,
+      0.8161552511415525
+     ],
+     "spine.artifact.f1": [
+      0.0,
+      0.0
+     ],
+     "spine.artifact.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "spine.artifact.specificity": [
+      0.9473684210526315,
+      1.0
+     ],
+     "spine.artifact.balanced_accuracy": [
+      0.47368421052631576,
+      0.5
+     ],
+     "hip.incorrect_positioning.f1": [
+      0.06059466848940534,
+      0.3841186958736627
+     ],
+     "hip.incorrect_positioning.sensitivity": [
+      0.08571428571428572,
+      0.5500431034482757
+     ],
+     "hip.incorrect_positioning.specificity": [
+      0.5340909090909091,
+      0.8011400058275058
+     ],
+     "hip.incorrect_positioning.precision": [
+      0.045454545454545456,
+      0.3490801886792451
+     ],
+     "hip.incorrect_positioning.balanced_accuracy": [
+      0.36377316011766514,
+      0.6206739554929056
+     ],
+     "hip.incomplete_field_of_view.f1": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.specificity": [
+      0.9302325581395349,
+      0.986537999037999
+     ],
+     "hip.incomplete_field_of_view.precision": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.balanced_accuracy": [
+      0.4650502114164905,
+      0.49293970537002935
+     ],
+     "spine.artifact.precision": [
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "spine": {
+    "quality_prob_roc_auc": 0.515251572327044,
+    "quality_prob_pr_auc": 0.4356471795093607,
+    "quality_class_f1": 0.29268292682926833,
+    "quality_class_sensitivity": 0.2,
+    "quality_class_specificity": 0.9056603773584906,
+    "quality_class_precision": 0.5454545454545454,
+    "quality_class_balanced_accuracy": 0.5528301886792453,
+    "quality_class_n": 166,
+    "quality_class_n_positive": 60,
+    "violation_type_macro_f1": 0.12500000000000003,
+    "per_type": {
+     "spine.incorrect_positioning": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.967948717948718,
+      "precision": 0.0,
+      "balanced_accuracy": 0.483974358974359,
+      "n": 166,
+      "n_positive": 10
+     },
+     "spine.axis_misaligned": {
+      "f1": 0.37500000000000006,
+      "sensitivity": 0.35294117647058826,
+      "specificity": 0.9395973154362416,
+      "precision": 0.4,
+      "balanced_accuracy": 0.646269245953415,
+      "n": 166,
+      "n_positive": 17
+     },
+     "spine.artifact": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.9770992366412213,
+      "precision": 0.0,
+      "balanced_accuracy": 0.48854961832061067,
+      "n": 166,
+      "n_positive": 35
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.37408680863649807,
+      0.6674083230254719
+     ],
+     "quality_prob_pr_auc": [
+      0.27998563879685023,
+      0.6204433571904808
+     ],
+     "quality_class_f1": [
+      0.07692307692307693,
+      0.49315958014588157
+     ],
+     "quality_class_sensitivity": [
+      0.04686053240740741,
+      0.38596491228070173
+     ],
+     "quality_class_specificity": [
+      0.8285714285714286,
+      0.965819209039548
+     ],
+     "quality_class_precision": [
+      0.17647058823529413,
+      0.8
+     ],
+     "quality_class_balanced_accuracy": [
+      0.4640562386156648,
+      0.6479326084247258
+     ],
+     "violation_type_macro_f1": [
+      0.0,
+      0.2222222222222222
+     ],
+     "spine.incorrect_positioning.f1": [
+      0.0,
+      0.0
+     ],
+     "spine.incorrect_positioning.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "spine.incorrect_positioning.specificity": [
+      0.9319653948535936,
+      0.9942528735632183
+     ],
+     "spine.incorrect_positioning.precision": [
+      0.0,
+      0.0
+     ],
+     "spine.incorrect_positioning.balanced_accuracy": [
+      0.46596051464063887,
+      0.49712643678160917
+     ],
+     "spine.axis_misaligned.f1": [
+      0.0,
+      0.6666666666666666
+     ],
+     "spine.axis_misaligned.sensitivity": [
+      0.0,
+      0.6923076923076923
+     ],
+     "spine.axis_misaligned.specificity": [
+      0.8749803459119497,
+      0.9869302266361091
+     ],
+     "spine.axis_misaligned.precision": [
+      0.0,
+      0.7829519450800912
+     ],
+     "spine.axis_misaligned.balanced_accuracy": [
+      0.4562488594890511,
+      0.8137997847002985
+     ],
+     "spine.artifact.f1": [
+      0.0,
+      0.0
+     ],
+     "spine.artifact.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "spine.artifact.specificity": [
+      0.9465614776444929,
+      1.0
+     ],
+     "spine.artifact.precision": [
+      0.0,
+      0.0
+     ],
+     "spine.artifact.balanced_accuracy": [
+      0.47328073882224647,
+      0.5
+     ]
+    }
+   },
+   "hip": {
+    "quality_prob_roc_auc": 0.489010989010989,
+    "quality_prob_pr_auc": 0.20359695732657168,
+    "quality_class_f1": 0.2312925170068027,
+    "quality_class_sensitivity": 0.3269230769230769,
+    "quality_class_specificity": 0.6157635467980296,
+    "quality_class_precision": 0.17894736842105263,
+    "quality_class_balanced_accuracy": 0.4713433118605532,
+    "quality_class_n": 255,
+    "quality_class_n_positive": 52,
+    "violation_type_macro_f1": 0.1111111111111111,
+    "per_type": {
+     "hip.incorrect_positioning": {
+      "f1": 0.2222222222222222,
+      "sensitivity": 0.2962962962962963,
+      "specificity": 0.6740088105726872,
+      "precision": 0.17777777777777778,
+      "balanced_accuracy": 0.48515255343449176,
+      "n": 281,
+      "n_positive": 54
+     },
+     "hip.incomplete_field_of_view": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.9634551495016611,
+      "precision": 0.0,
+      "balanced_accuracy": 0.48172757475083056,
+      "n": 303,
+      "n_positive": 2
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.3240499436732581,
+      0.6535992673153129
+     ],
+     "quality_prob_pr_auc": [
+      0.10584616766466193,
+      0.3740119428712764
+     ],
+     "quality_class_f1": [
+      0.06532805429864254,
+      0.39726665532204536
+     ],
+     "quality_class_sensitivity": [
+      0.10935801630434783,
+      0.5834051724137927
+     ],
+     "quality_class_specificity": [
+      0.45158801274392674,
+      0.754172149122807
+     ],
+     "quality_class_precision": [
+      0.04671459381739756,
+      0.34955329477380687
+     ],
+     "quality_class_balanced_accuracy": [
+      0.33781729132223276,
+      0.6161072203112615
+     ],
+     "violation_type_macro_f1": [
+      0.02774558498896247,
+      0.19620544381455307
+     ],
+     "hip.incorrect_positioning.f1": [
+      0.05549116997792494,
+      0.39241088762910614
+     ],
+     "hip.incorrect_positioning.sensitivity": [
+      0.08326612903225807,
+      0.5472405660377354
+     ],
+     "hip.incorrect_positioning.specificity": [
+      0.5273419832654908,
+      0.8
+     ],
+     "hip.incorrect_positioning.precision": [
+      0.04040404040404041,
+      0.3589999999999999
+     ],
+     "hip.incorrect_positioning.balanced_accuracy": [
+      0.3545726929711757,
+      0.6253035714285713
+     ],
+     "hip.incomplete_field_of_view.f1": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.specificity": [
+      0.9299576762918971,
+      0.9874656526955378
+     ],
+     "hip.incomplete_field_of_view.precision": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.balanced_accuracy": [
+      0.4650386601625086,
+      0.49444444444444446
+     ]
+    }
+   }
+  },
+  "heuristics": {
+   "all": {
+    "quality_prob_roc_auc": 0.5099110032362459,
+    "quality_prob_pr_auc": 0.26616674435756504,
+    "quality_class_f1": 0.3293172690763052,
+    "quality_class_sensitivity": 0.36607142857142855,
+    "quality_class_specificity": 0.6893203883495146,
+    "quality_class_precision": 0.29927007299270075,
+    "quality_class_balanced_accuracy": 0.5276959084604715,
+    "quality_class_n": 421,
+    "quality_class_n_positive": 112,
+    "violation_type_macro_f1": 0.30840224103381997,
+    "per_type": {
+     "spine.incorrect_positioning": {
+      "f1": 0.5263157894736842,
+      "sensitivity": 0.5,
+      "specificity": 0.9743589743589743,
+      "precision": 0.5555555555555556,
+      "balanced_accuracy": 0.7371794871794872,
+      "n": 166,
+      "n_positive": 10
+     },
+     "spine.axis_misaligned": {
+      "f1": 0.42424242424242425,
+      "sensitivity": 0.4117647058823529,
+      "specificity": 0.9395973154362416,
+      "precision": 0.4375,
+      "balanced_accuracy": 0.6756810106592972,
+      "n": 166,
+      "n_positive": 17
+     },
+     "spine.artifact": {
+      "f1": 0.36923076923076925,
+      "sensitivity": 0.34285714285714286,
+      "specificity": 0.8625954198473282,
+      "precision": 0.4,
+      "balanced_accuracy": 0.6027262813522356,
+      "n": 166,
+      "n_positive": 35
+     },
+     "hip.incorrect_positioning": {
+      "f1": 0.2222222222222222,
+      "sensitivity": 0.2962962962962963,
+      "specificity": 0.6740088105726872,
+      "precision": 0.17777777777777778,
+      "balanced_accuracy": 0.48515255343449176,
+      "n": 281,
+      "n_positive": 54
+     },
+     "hip.incomplete_field_of_view": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.9634551495016611,
+      "precision": 0.0,
+      "balanced_accuracy": 0.48172757475083056,
+      "n": 303,
+      "n_positive": 2
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.400245604058899,
+      0.6080450930372149
+     ],
+     "quality_prob_pr_auc": [
+      0.17933235904891195,
+      0.40418007838325887
+     ],
+     "quality_class_f1": [
+      0.1999586776859504,
+      0.4557073062402842
+     ],
+     "quality_class_sensitivity": [
+      0.2244745659457813,
+      0.5230813953488372
+     ],
+     "quality_class_specificity": [
+      0.5767423067327614,
+      0.7912934637487664
+     ],
+     "quality_class_precision": [
+      0.16993155752867184,
+      0.4522028985507245
+     ],
+     "quality_class_balanced_accuracy": [
+      0.44382323451869116,
+      0.6216068741052496
+     ],
+     "violation_type_macro_f1": [
+      0.1776509980393844,
+      0.41117347708680096
+     ],
+     "spine.incorrect_positioning.f1": [
+      0.11764705882352942,
+      0.9090909090909091
+     ],
+     "spine.incorrect_positioning.sensitivity": [
+      0.1,
+      1.0
+     ],
+     "spine.incorrect_positioning.specificity": [
+      0.9285607356715141,
+      1.0
+     ],
+     "spine.incorrect_positioning.precision": [
+      0.125,
+      1.0
+     ],
+     "spine.incorrect_positioning.balanced_accuracy": [
+      0.535681216931217,
+      0.9968582940251572
+     ],
+     "spine.axis_misaligned.f1": [
+      0.0,
+      0.7058823529411765
+     ],
+     "spine.axis_misaligned.sensitivity": [
+      0.0,
+      0.739402173913042
+     ],
+     "spine.axis_misaligned.specificity": [
+      0.875,
+      0.9876580849141824
+     ],
+     "spine.axis_misaligned.precision": [
+      0.0,
+      0.8333333333333334
+     ],
+     "spine.axis_misaligned.balanced_accuracy": [
+      0.4675305463767002,
+      0.8455194071351292
+     ],
+     "spine.artifact.f1": [
+      0.1463192904656319,
+      0.6
+     ],
+     "spine.artifact.sensitivity": [
+      0.125,
+      0.6818181818181818
+     ],
+     "spine.artifact.specificity": [
+      0.773429293592437,
+      0.9354838709677419
+     ],
+     "spine.artifact.precision": [
+      0.16129032258064516,
+      0.6452087286527511
+     ],
+     "spine.artifact.balanced_accuracy": [
+      0.4839142462364114,
+      0.7683780471041053
+     ],
+     "hip.incorrect_positioning.f1": [
+      0.06059466848940534,
+      0.3841186958736627
+     ],
+     "hip.incorrect_positioning.sensitivity": [
+      0.08571428571428572,
+      0.5500431034482757
+     ],
+     "hip.incorrect_positioning.specificity": [
+      0.5340909090909091,
+      0.8011400058275058
+     ],
+     "hip.incorrect_positioning.precision": [
+      0.045454545454545456,
+      0.3490801886792451
+     ],
+     "hip.incorrect_positioning.balanced_accuracy": [
+      0.36377316011766514,
+      0.6206739554929056
+     ],
+     "hip.incomplete_field_of_view.f1": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.specificity": [
+      0.9302325581395349,
+      0.986537999037999
+     ],
+     "hip.incomplete_field_of_view.precision": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.balanced_accuracy": [
+      0.4650502114164905,
+      0.49293970537002935
+     ]
+    }
+   },
+   "spine": {
+    "quality_prob_roc_auc": 0.5888364779874213,
+    "quality_prob_pr_auc": 0.48901580040946757,
+    "quality_class_f1": 0.47058823529411764,
+    "quality_class_sensitivity": 0.4,
+    "quality_class_specificity": 0.8301886792452831,
+    "quality_class_precision": 0.5714285714285714,
+    "quality_class_balanced_accuracy": 0.6150943396226416,
+    "quality_class_n": 166,
+    "quality_class_n_positive": 60,
+    "violation_type_macro_f1": 0.4399296609822925,
+    "per_type": {
+     "spine.incorrect_positioning": {
+      "f1": 0.5263157894736842,
+      "sensitivity": 0.5,
+      "specificity": 0.9743589743589743,
+      "precision": 0.5555555555555556,
+      "balanced_accuracy": 0.7371794871794872,
+      "n": 166,
+      "n_positive": 10
+     },
+     "spine.axis_misaligned": {
+      "f1": 0.42424242424242425,
+      "sensitivity": 0.4117647058823529,
+      "specificity": 0.9395973154362416,
+      "precision": 0.4375,
+      "balanced_accuracy": 0.6756810106592972,
+      "n": 166,
+      "n_positive": 17
+     },
+     "spine.artifact": {
+      "f1": 0.36923076923076925,
+      "sensitivity": 0.34285714285714286,
+      "specificity": 0.8625954198473282,
+      "precision": 0.4,
+      "balanced_accuracy": 0.6027262813522356,
+      "n": 166,
+      "n_positive": 35
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.4296033474614378,
+      0.7569519927536231
+     ],
+     "quality_prob_pr_auc": [
+      0.34152276143753485,
+      0.6827538061707529
+     ],
+     "quality_class_f1": [
+      0.27721192331999156,
+      0.6486486486486486
+     ],
+     "quality_class_sensitivity": [
+      0.2075309043591412,
+      0.6167261904761902
+     ],
+     "quality_class_specificity": [
+      0.7221955128205129,
+      0.9203539823008849
+     ],
+     "quality_class_precision": [
+      0.36205979457079973,
+      0.7727487135506002
+     ],
+     "quality_class_balanced_accuracy": [
+      0.5098989517932688,
+      0.7375305402126575
+     ],
+     "violation_type_macro_f1": [
+      0.24459726222257291,
+      0.6004088683774044
+     ],
+     "spine.incorrect_positioning.f1": [
+      0.11111111111111112,
+      0.9090909090909091
+     ],
+     "spine.incorrect_positioning.sensitivity": [
+      0.1,
+      1.0
+     ],
+     "spine.incorrect_positioning.specificity": [
+      0.9256704297465167,
+      1.0
+     ],
+     "spine.incorrect_positioning.precision": [
+      0.125,
+      1.0
+     ],
+     "spine.incorrect_positioning.balanced_accuracy": [
+      0.5354759933774834,
+      0.9966887417218543
+     ],
+     "spine.axis_misaligned.f1": [
+      0.0,
+      0.7097132616487453
+     ],
+     "spine.axis_misaligned.sensitivity": [
+      0.0,
+      0.75
+     ],
+     "spine.axis_misaligned.specificity": [
+      0.8749803459119497,
+      0.9869302266361091
+     ],
+     "spine.axis_misaligned.precision": [
+      0.0,
+      0.8
+     ],
+     "spine.axis_misaligned.balanced_accuracy": [
+      0.468944099378882,
+      0.8402777777777778
+     ],
+     "spine.artifact.f1": [
+      0.1332967032967033,
+      0.6087324981577007
+     ],
+     "spine.artifact.sensitivity": [
+      0.11106060606060605,
+      0.7
+     ],
+     "spine.artifact.specificity": [
+      0.7786245910577971,
+      0.9370629370629371
+     ],
+     "spine.artifact.precision": [
+      0.15625,
+      0.65625
+     ],
+     "spine.artifact.balanced_accuracy": [
+      0.483570142930608,
+      0.7880645295067864
+     ]
+    }
+   },
+   "hip": {
+    "quality_prob_roc_auc": 0.489010989010989,
+    "quality_prob_pr_auc": 0.20359695732657168,
+    "quality_class_f1": 0.2312925170068027,
+    "quality_class_sensitivity": 0.3269230769230769,
+    "quality_class_specificity": 0.6157635467980296,
+    "quality_class_precision": 0.17894736842105263,
+    "quality_class_balanced_accuracy": 0.4713433118605532,
+    "quality_class_n": 255,
+    "quality_class_n_positive": 52,
+    "violation_type_macro_f1": 0.1111111111111111,
+    "per_type": {
+     "hip.incorrect_positioning": {
+      "f1": 0.2222222222222222,
+      "sensitivity": 0.2962962962962963,
+      "specificity": 0.6740088105726872,
+      "precision": 0.17777777777777778,
+      "balanced_accuracy": 0.48515255343449176,
+      "n": 281,
+      "n_positive": 54
+     },
+     "hip.incomplete_field_of_view": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.9634551495016611,
+      "precision": 0.0,
+      "balanced_accuracy": 0.48172757475083056,
+      "n": 303,
+      "n_positive": 2
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.3240499436732581,
+      0.6535992673153129
+     ],
+     "quality_prob_pr_auc": [
+      0.10584616766466193,
+      0.3740119428712764
+     ],
+     "quality_class_f1": [
+      0.06532805429864254,
+      0.39726665532204536
+     ],
+     "quality_class_sensitivity": [
+      0.10935801630434783,
+      0.5834051724137927
+     ],
+     "quality_class_specificity": [
+      0.45158801274392674,
+      0.754172149122807
+     ],
+     "quality_class_precision": [
+      0.04671459381739756,
+      0.34955329477380687
+     ],
+     "quality_class_balanced_accuracy": [
+      0.33781729132223276,
+      0.6161072203112615
+     ],
+     "violation_type_macro_f1": [
+      0.02774558498896247,
+      0.19620544381455307
+     ],
+     "hip.incorrect_positioning.f1": [
+      0.05549116997792494,
+      0.39241088762910614
+     ],
+     "hip.incorrect_positioning.sensitivity": [
+      0.08326612903225807,
+      0.5472405660377354
+     ],
+     "hip.incorrect_positioning.specificity": [
+      0.5273419832654908,
+      0.8
+     ],
+     "hip.incorrect_positioning.precision": [
+      0.04040404040404041,
+      0.3589999999999999
+     ],
+     "hip.incorrect_positioning.balanced_accuracy": [
+      0.3545726929711757,
+      0.6253035714285713
+     ],
+     "hip.incomplete_field_of_view.f1": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.specificity": [
+      0.9299576762918971,
+      0.9874656526955378
+     ],
+     "hip.incomplete_field_of_view.precision": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.balanced_accuracy": [
+      0.4650386601625086,
+      0.49444444444444446
+     ]
+    }
+   }
+  },
+  "hybrid_thr05": {
+   "all": {
+    "quality_prob_roc_auc": 0.6731680536292187,
+    "quality_prob_pr_auc": 0.40096695446962927,
+    "quality_class_f1": 0.40816326530612246,
+    "quality_class_sensitivity": 0.35714285714285715,
+    "quality_class_specificity": 0.8576051779935275,
+    "quality_class_precision": 0.47619047619047616,
+    "quality_class_balanced_accuracy": 0.6073740175681923,
+    "quality_class_n": 421,
+    "quality_class_n_positive": 112,
+    "violation_type_macro_f1": 0.3279577965893755,
+    "per_type": {
+     "spine.incorrect_positioning": {
+      "f1": 0.5263157894736842,
+      "sensitivity": 0.5,
+      "specificity": 0.9743589743589743,
+      "precision": 0.5555555555555556,
+      "balanced_accuracy": 0.7371794871794872,
+      "n": 166,
+      "n_positive": 10
+     },
+     "spine.axis_misaligned": {
+      "f1": 0.42424242424242425,
+      "sensitivity": 0.4117647058823529,
+      "specificity": 0.9395973154362416,
+      "precision": 0.4375,
+      "balanced_accuracy": 0.6756810106592972,
+      "n": 166,
+      "n_positive": 17
+     },
+     "spine.artifact": {
+      "f1": 0.36923076923076925,
+      "sensitivity": 0.34285714285714286,
+      "specificity": 0.8625954198473282,
+      "precision": 0.4,
+      "balanced_accuracy": 0.6027262813522356,
+      "n": 166,
+      "n_positive": 35
+     },
+     "hip.incorrect_positioning": {
+      "f1": 0.31999999999999995,
+      "sensitivity": 0.2962962962962963,
+      "specificity": 0.8678414096916299,
+      "precision": 0.34782608695652173,
+      "balanced_accuracy": 0.582068852993963,
+      "n": 281,
+      "n_positive": 54
+     },
+     "hip.incomplete_field_of_view": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.9634551495016611,
+      "precision": 0.0,
+      "balanced_accuracy": 0.48172757475083056,
+      "n": 303,
+      "n_positive": 2
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.5781124656499335,
+      0.7587230360551223
+     ],
+     "quality_prob_pr_auc": [
+      0.27341248299573406,
+      0.5607189914054752
+     ],
+     "quality_class_f1": [
+      0.23455736224028909,
+      0.5575375591685531
+     ],
+     "quality_class_sensitivity": [
+      0.18862328110009596,
+      0.5333333333333333
+     ],
+     "quality_class_specificity": [
+      0.7892884007823079,
+      0.9166724376731301
+     ],
+     "quality_class_precision": [
+      0.27415689149560113,
+      0.6579179566563467
+     ],
+     "quality_class_balanced_accuracy": [
+      0.5221474091403278,
+      0.69474334069245
+     ],
+     "violation_type_macro_f1": [
+      0.18949422799422797,
+      0.4309701398939341
+     ],
+     "spine.incorrect_positioning.f1": [
+      0.11764705882352942,
+      0.9090909090909091
+     ],
+     "spine.incorrect_positioning.sensitivity": [
+      0.1,
+      1.0
+     ],
+     "spine.incorrect_positioning.specificity": [
+      0.9285607356715141,
+      1.0
+     ],
+     "spine.incorrect_positioning.precision": [
+      0.125,
+      1.0
+     ],
+     "spine.incorrect_positioning.balanced_accuracy": [
+      0.535681216931217,
+      0.9968582940251572
+     ],
+     "spine.axis_misaligned.f1": [
+      0.0,
+      0.7058823529411765
+     ],
+     "spine.axis_misaligned.sensitivity": [
+      0.0,
+      0.739402173913042
+     ],
+     "spine.axis_misaligned.specificity": [
+      0.875,
+      0.9876580849141824
+     ],
+     "spine.axis_misaligned.precision": [
+      0.0,
+      0.8333333333333334
+     ],
+     "spine.axis_misaligned.balanced_accuracy": [
+      0.4675305463767002,
+      0.8455194071351292
+     ],
+     "spine.artifact.f1": [
+      0.1463192904656319,
+      0.6
+     ],
+     "spine.artifact.sensitivity": [
+      0.125,
+      0.6818181818181818
+     ],
+     "spine.artifact.specificity": [
+      0.773429293592437,
+      0.9354838709677419
+     ],
+     "spine.artifact.precision": [
+      0.16129032258064516,
+      0.6452087286527511
+     ],
+     "spine.artifact.balanced_accuracy": [
+      0.4839142462364114,
+      0.7683780471041053
+     ],
+     "hip.incorrect_positioning.f1": [
+      0.05606178608515057,
+      0.5485934065934065
+     ],
+     "hip.incorrect_positioning.sensitivity": [
+      0.05555555555555555,
+      0.5526315789473685
+     ],
+     "hip.incorrect_positioning.specificity": [
+      0.788375589000633,
+      0.9417529906380028
+     ],
+     "hip.incorrect_positioning.precision": [
+      0.05263157894736842,
+      0.6428571428571429
+     ],
+     "hip.incorrect_positioning.balanced_accuracy": [
+      0.4556128974694879,
+      0.7151549311255025
+     ],
+     "hip.incomplete_field_of_view.f1": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.specificity": [
+      0.9302325581395349,
+      0.986537999037999
+     ],
+     "hip.incomplete_field_of_view.precision": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.balanced_accuracy": [
+      0.4650502114164905,
+      0.49293970537002935
+     ]
+    }
+   },
+   "spine": {
+    "quality_prob_roc_auc": 0.5888364779874213,
+    "quality_prob_pr_auc": 0.48901580040946757,
+    "quality_class_f1": 0.47058823529411764,
+    "quality_class_sensitivity": 0.4,
+    "quality_class_specificity": 0.8301886792452831,
+    "quality_class_precision": 0.5714285714285714,
+    "quality_class_balanced_accuracy": 0.6150943396226416,
+    "quality_class_n": 166,
+    "quality_class_n_positive": 60,
+    "violation_type_macro_f1": 0.4399296609822925,
+    "per_type": {
+     "spine.incorrect_positioning": {
+      "f1": 0.5263157894736842,
+      "sensitivity": 0.5,
+      "specificity": 0.9743589743589743,
+      "precision": 0.5555555555555556,
+      "balanced_accuracy": 0.7371794871794872,
+      "n": 166,
+      "n_positive": 10
+     },
+     "spine.axis_misaligned": {
+      "f1": 0.42424242424242425,
+      "sensitivity": 0.4117647058823529,
+      "specificity": 0.9395973154362416,
+      "precision": 0.4375,
+      "balanced_accuracy": 0.6756810106592972,
+      "n": 166,
+      "n_positive": 17
+     },
+     "spine.artifact": {
+      "f1": 0.36923076923076925,
+      "sensitivity": 0.34285714285714286,
+      "specificity": 0.8625954198473282,
+      "precision": 0.4,
+      "balanced_accuracy": 0.6027262813522356,
+      "n": 166,
+      "n_positive": 35
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.4296033474614378,
+      0.7569519927536231
+     ],
+     "quality_prob_pr_auc": [
+      0.34152276143753485,
+      0.6827538061707529
+     ],
+     "quality_class_f1": [
+      0.27721192331999156,
+      0.6486486486486486
+     ],
+     "quality_class_sensitivity": [
+      0.2075309043591412,
+      0.6167261904761902
+     ],
+     "quality_class_specificity": [
+      0.7221955128205129,
+      0.9203539823008849
+     ],
+     "quality_class_precision": [
+      0.36205979457079973,
+      0.7727487135506002
+     ],
+     "quality_class_balanced_accuracy": [
+      0.5098989517932688,
+      0.7375305402126575
+     ],
+     "violation_type_macro_f1": [
+      0.24459726222257291,
+      0.6004088683774044
+     ],
+     "spine.incorrect_positioning.f1": [
+      0.11111111111111112,
+      0.9090909090909091
+     ],
+     "spine.incorrect_positioning.sensitivity": [
+      0.1,
+      1.0
+     ],
+     "spine.incorrect_positioning.specificity": [
+      0.9256704297465167,
+      1.0
+     ],
+     "spine.incorrect_positioning.precision": [
+      0.125,
+      1.0
+     ],
+     "spine.incorrect_positioning.balanced_accuracy": [
+      0.5354759933774834,
+      0.9966887417218543
+     ],
+     "spine.axis_misaligned.f1": [
+      0.0,
+      0.7097132616487453
+     ],
+     "spine.axis_misaligned.sensitivity": [
+      0.0,
+      0.75
+     ],
+     "spine.axis_misaligned.specificity": [
+      0.8749803459119497,
+      0.9869302266361091
+     ],
+     "spine.axis_misaligned.precision": [
+      0.0,
+      0.8
+     ],
+     "spine.axis_misaligned.balanced_accuracy": [
+      0.468944099378882,
+      0.8402777777777778
+     ],
+     "spine.artifact.f1": [
+      0.1332967032967033,
+      0.6087324981577007
+     ],
+     "spine.artifact.sensitivity": [
+      0.11106060606060605,
+      0.7
+     ],
+     "spine.artifact.specificity": [
+      0.7786245910577971,
+      0.9370629370629371
+     ],
+     "spine.artifact.precision": [
+      0.15625,
+      0.65625
+     ],
+     "spine.artifact.balanced_accuracy": [
+      0.483570142930608,
+      0.7880645295067864
+     ]
+    }
+   },
+   "hip": {
+    "quality_prob_roc_auc": 0.7216748768472906,
+    "quality_prob_pr_auc": 0.38128549488125446,
+    "quality_class_f1": 0.3404255319148936,
+    "quality_class_sensitivity": 0.3076923076923077,
+    "quality_class_specificity": 0.8719211822660099,
+    "quality_class_precision": 0.38095238095238093,
+    "quality_class_balanced_accuracy": 0.5898067449791589,
+    "quality_class_n": 255,
+    "quality_class_n_positive": 52,
+    "violation_type_macro_f1": 0.15999999999999998,
+    "per_type": {
+     "hip.incorrect_positioning": {
+      "f1": 0.31999999999999995,
+      "sensitivity": 0.2962962962962963,
+      "specificity": 0.8678414096916299,
+      "precision": 0.34782608695652173,
+      "balanced_accuracy": 0.582068852993963,
+      "n": 281,
+      "n_positive": 54
+     },
+     "hip.incomplete_field_of_view": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.9634551495016611,
+      "precision": 0.0,
+      "balanced_accuracy": 0.48172757475083056,
+      "n": 303,
+      "n_positive": 2
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.5710567923993193,
+      0.8496513258191604
+     ],
+     "quality_prob_pr_auc": [
+      0.18987700925544834,
+      0.6194816813802233
+     ],
+     "quality_class_f1": [
+      0.05333333333333334,
+      0.5763530431432969
+     ],
+     "quality_class_sensitivity": [
+      0.045454545454545456,
+      0.5914277180406211
+     ],
+     "quality_class_specificity": [
+      0.7868020304568528,
+      0.9381522601110229
+     ],
+     "quality_class_precision": [
+      0.05401849217638692,
+      0.6552404718693281
+     ],
+     "quality_class_balanced_accuracy": [
+      0.4536576159789747,
+      0.7331340134106072
+     ],
+     "violation_type_macro_f1": [
+      0.027018018018018015,
+      0.2740770609318997
+     ],
+     "hip.incorrect_positioning.f1": [
+      0.05403603603603603,
+      0.5481541218637994
+     ],
+     "hip.incorrect_positioning.sensitivity": [
+      0.05125,
+      0.5614309210526314
+     ],
+     "hip.incorrect_positioning.specificity": [
+      0.7807452526465132,
+      0.9409506716072256
+     ],
+     "hip.incorrect_positioning.precision": [
+      0.05555555555555555,
+      0.6393606557377048
+     ],
+     "hip.incorrect_positioning.balanced_accuracy": [
+      0.45374216640014214,
+      0.718035495448179
+     ],
+     "hip.incomplete_field_of_view.f1": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.specificity": [
+      0.9299576762918971,
+      0.9874656526955378
+     ],
+     "hip.incomplete_field_of_view.precision": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.balanced_accuracy": [
+      0.4650386601625086,
+      0.49444444444444446
+     ]
+    }
+   }
+  },
+  "hybrid": {
+   "all": {
+    "quality_prob_roc_auc": 0.6731680536292187,
+    "quality_prob_pr_auc": 0.40096695446962927,
+    "quality_class_f1": 0.36000000000000004,
+    "quality_class_sensitivity": 0.32142857142857145,
+    "quality_class_specificity": 0.8317152103559871,
+    "quality_class_precision": 0.4090909090909091,
+    "quality_class_balanced_accuracy": 0.5765718908922792,
+    "quality_class_n": 421,
+    "quality_class_n_positive": 112,
+    "violation_type_macro_f1": 0.3162942451875064,
+    "per_type": {
+     "spine.incorrect_positioning": {
+      "f1": 0.5263157894736842,
+      "sensitivity": 0.5,
+      "specificity": 0.9743589743589743,
+      "precision": 0.5555555555555556,
+      "balanced_accuracy": 0.7371794871794872,
+      "n": 166,
+      "n_positive": 10
+     },
+     "spine.axis_misaligned": {
+      "f1": 0.42424242424242425,
+      "sensitivity": 0.4117647058823529,
+      "specificity": 0.9395973154362416,
+      "precision": 0.4375,
+      "balanced_accuracy": 0.6756810106592972,
+      "n": 166,
+      "n_positive": 17
+     },
+     "spine.artifact": {
+      "f1": 0.36923076923076925,
+      "sensitivity": 0.34285714285714286,
+      "specificity": 0.8625954198473282,
+      "precision": 0.4,
+      "balanced_accuracy": 0.6027262813522356,
+      "n": 166,
+      "n_positive": 35
+     },
+     "hip.incorrect_positioning": {
+      "f1": 0.2616822429906542,
+      "sensitivity": 0.25925925925925924,
+      "specificity": 0.8281938325991189,
+      "precision": 0.2641509433962264,
+      "balanced_accuracy": 0.5437265459291891,
+      "n": 281,
+      "n_positive": 54
+     },
+     "hip.incomplete_field_of_view": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.9634551495016611,
+      "precision": 0.0,
+      "balanced_accuracy": 0.48172757475083056,
+      "n": 303,
+      "n_positive": 2
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.5781124656499335,
+      0.7587230360551223
+     ],
+     "quality_prob_pr_auc": [
+      0.27341248299573406,
+      0.5607189914054752
+     ],
+     "quality_class_f1": [
+      0.21116377901274924,
+      0.5108780951452524
+     ],
+     "quality_class_sensitivity": [
+      0.1736111111111111,
+      0.5
+     ],
+     "quality_class_specificity": [
+      0.7491815162547103,
+      0.9038965660673846
+     ],
+     "quality_class_precision": [
+      0.23529411764705882,
+      0.593761322463768
+     ],
+     "quality_class_balanced_accuracy": [
+      0.5024202276054975,
+      0.6663915389332669
+     ],
+     "violation_type_macro_f1": [
+      0.18311061916689617,
+      0.4223775756045595
+     ],
+     "spine.incorrect_positioning.f1": [
+      0.11764705882352942,
+      0.9090909090909091
+     ],
+     "spine.incorrect_positioning.sensitivity": [
+      0.1,
+      1.0
+     ],
+     "spine.incorrect_positioning.specificity": [
+      0.9285607356715141,
+      1.0
+     ],
+     "spine.incorrect_positioning.precision": [
+      0.125,
+      1.0
+     ],
+     "spine.incorrect_positioning.balanced_accuracy": [
+      0.535681216931217,
+      0.9968582940251572
+     ],
+     "spine.axis_misaligned.f1": [
+      0.0,
+      0.7058823529411765
+     ],
+     "spine.axis_misaligned.sensitivity": [
+      0.0,
+      0.739402173913042
+     ],
+     "spine.axis_misaligned.specificity": [
+      0.875,
+      0.9876580849141824
+     ],
+     "spine.axis_misaligned.precision": [
+      0.0,
+      0.8333333333333334
+     ],
+     "spine.axis_misaligned.balanced_accuracy": [
+      0.4675305463767002,
+      0.8455194071351292
+     ],
+     "spine.artifact.f1": [
+      0.1463192904656319,
+      0.6
+     ],
+     "spine.artifact.sensitivity": [
+      0.125,
+      0.6818181818181818
+     ],
+     "spine.artifact.specificity": [
+      0.773429293592437,
+      0.9354838709677419
+     ],
+     "spine.artifact.precision": [
+      0.16129032258064516,
+      0.6452087286527511
+     ],
+     "spine.artifact.balanced_accuracy": [
+      0.4839142462364114,
+      0.7683780471041053
+     ],
+     "hip.incorrect_positioning.f1": [
+      0.02061329686513781,
+      0.5037484737484734
+     ],
+     "hip.incorrect_positioning.sensitivity": [
+      0.01818181818181818,
+      0.5745294599018
+     ],
+     "hip.incorrect_positioning.specificity": [
+      0.725075559829647,
+      0.9216757639479217
+     ],
+     "hip.incorrect_positioning.precision": [
+      0.01959841628959276,
+      0.5370370370370371
+     ],
+     "hip.incorrect_positioning.balanced_accuracy": [
+      0.40940072945254946,
+      0.7070281537288872
+     ],
+     "hip.incomplete_field_of_view.f1": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.specificity": [
+      0.9302325581395349,
+      0.986537999037999
+     ],
+     "hip.incomplete_field_of_view.precision": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.balanced_accuracy": [
+      0.4650502114164905,
+      0.49293970537002935
+     ]
+    }
+   },
+   "spine": {
+    "quality_prob_roc_auc": 0.5888364779874213,
+    "quality_prob_pr_auc": 0.48901580040946757,
+    "quality_class_f1": 0.47058823529411764,
+    "quality_class_sensitivity": 0.4,
+    "quality_class_specificity": 0.8301886792452831,
+    "quality_class_precision": 0.5714285714285714,
+    "quality_class_balanced_accuracy": 0.6150943396226416,
+    "quality_class_n": 166,
+    "quality_class_n_positive": 60,
+    "violation_type_macro_f1": 0.4399296609822925,
+    "per_type": {
+     "spine.incorrect_positioning": {
+      "f1": 0.5263157894736842,
+      "sensitivity": 0.5,
+      "specificity": 0.9743589743589743,
+      "precision": 0.5555555555555556,
+      "balanced_accuracy": 0.7371794871794872,
+      "n": 166,
+      "n_positive": 10
+     },
+     "spine.axis_misaligned": {
+      "f1": 0.42424242424242425,
+      "sensitivity": 0.4117647058823529,
+      "specificity": 0.9395973154362416,
+      "precision": 0.4375,
+      "balanced_accuracy": 0.6756810106592972,
+      "n": 166,
+      "n_positive": 17
+     },
+     "spine.artifact": {
+      "f1": 0.36923076923076925,
+      "sensitivity": 0.34285714285714286,
+      "specificity": 0.8625954198473282,
+      "precision": 0.4,
+      "balanced_accuracy": 0.6027262813522356,
+      "n": 166,
+      "n_positive": 35
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.4296033474614378,
+      0.7569519927536231
+     ],
+     "quality_prob_pr_auc": [
+      0.34152276143753485,
+      0.6827538061707529
+     ],
+     "quality_class_f1": [
+      0.27721192331999156,
+      0.6486486486486486
+     ],
+     "quality_class_sensitivity": [
+      0.2075309043591412,
+      0.6167261904761902
+     ],
+     "quality_class_specificity": [
+      0.7221955128205129,
+      0.9203539823008849
+     ],
+     "quality_class_precision": [
+      0.36205979457079973,
+      0.7727487135506002
+     ],
+     "quality_class_balanced_accuracy": [
+      0.5098989517932688,
+      0.7375305402126575
+     ],
+     "violation_type_macro_f1": [
+      0.24459726222257291,
+      0.6004088683774044
+     ],
+     "spine.incorrect_positioning.f1": [
+      0.11111111111111112,
+      0.9090909090909091
+     ],
+     "spine.incorrect_positioning.sensitivity": [
+      0.1,
+      1.0
+     ],
+     "spine.incorrect_positioning.specificity": [
+      0.9256704297465167,
+      1.0
+     ],
+     "spine.incorrect_positioning.precision": [
+      0.125,
+      1.0
+     ],
+     "spine.incorrect_positioning.balanced_accuracy": [
+      0.5354759933774834,
+      0.9966887417218543
+     ],
+     "spine.axis_misaligned.f1": [
+      0.0,
+      0.7097132616487453
+     ],
+     "spine.axis_misaligned.sensitivity": [
+      0.0,
+      0.75
+     ],
+     "spine.axis_misaligned.specificity": [
+      0.8749803459119497,
+      0.9869302266361091
+     ],
+     "spine.axis_misaligned.precision": [
+      0.0,
+      0.8
+     ],
+     "spine.axis_misaligned.balanced_accuracy": [
+      0.468944099378882,
+      0.8402777777777778
+     ],
+     "spine.artifact.f1": [
+      0.1332967032967033,
+      0.6087324981577007
+     ],
+     "spine.artifact.sensitivity": [
+      0.11106060606060605,
+      0.7
+     ],
+     "spine.artifact.specificity": [
+      0.7786245910577971,
+      0.9370629370629371
+     ],
+     "spine.artifact.precision": [
+      0.15625,
+      0.65625
+     ],
+     "spine.artifact.balanced_accuracy": [
+      0.483570142930608,
+      0.7880645295067864
+     ]
+    }
+   },
+   "hip": {
+    "quality_prob_roc_auc": 0.7216748768472906,
+    "quality_prob_pr_auc": 0.38128549488125446,
+    "quality_class_f1": 0.24489795918367346,
+    "quality_class_sensitivity": 0.23076923076923078,
+    "quality_class_specificity": 0.8325123152709359,
+    "quality_class_precision": 0.2608695652173913,
+    "quality_class_balanced_accuracy": 0.5316407730200834,
+    "quality_class_n": 255,
+    "quality_class_n_positive": 52,
+    "violation_type_macro_f1": 0.1308411214953271,
+    "per_type": {
+     "hip.incorrect_positioning": {
+      "f1": 0.2616822429906542,
+      "sensitivity": 0.25925925925925924,
+      "specificity": 0.8281938325991189,
+      "precision": 0.2641509433962264,
+      "balanced_accuracy": 0.5437265459291891,
+      "n": 281,
+      "n_positive": 54
+     },
+     "hip.incomplete_field_of_view": {
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 0.9634551495016611,
+      "precision": 0.0,
+      "balanced_accuracy": 0.48172757475083056,
+      "n": 303,
+      "n_positive": 2
+     }
+    },
+    "ci95": {
+     "quality_prob_roc_auc": [
+      0.5710567923993193,
+      0.8496513258191604
+     ],
+     "quality_prob_pr_auc": [
+      0.18987700925544834,
+      0.6194816813802233
+     ],
+     "quality_class_f1": [
+      0.020202020202020204,
+      0.5085143897167556
+     ],
+     "quality_class_sensitivity": [
+      0.0161226318484383,
+      0.5454545454545454
+     ],
+     "quality_class_specificity": [
+      0.7058823529411765,
+      0.9201884177404854
+     ],
+     "quality_class_precision": [
+      0.02039795918367347,
+      0.5556277056277052
+     ],
+     "quality_class_balanced_accuracy": [
+      0.4030599195645306,
+      0.6922116629718317
+     ],
+     "violation_type_macro_f1": [
+      0.010630072384294802,
+      0.25439886480908147
+     ],
+     "hip.incorrect_positioning.f1": [
+      0.021260144768589603,
+      0.5087977296181629
+     ],
+     "hip.incorrect_positioning.sensitivity": [
+      0.020833333333333332,
+      0.5614309210526314
+     ],
+     "hip.incorrect_positioning.specificity": [
+      0.7131006504280879,
+      0.9187822682112022
+     ],
+     "hip.incorrect_positioning.precision": [
+      0.02040816326530612,
+      0.5410183384273408
+     ],
+     "hip.incorrect_positioning.balanced_accuracy": [
+      0.4121059256998453,
+      0.6995644035144161
+     ],
+     "hip.incomplete_field_of_view.f1": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.specificity": [
+      0.9299576762918971,
+      0.9874656526955378
+     ],
+     "hip.incomplete_field_of_view.precision": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.sensitivity": [
+      0.0,
+      0.0
+     ],
+     "hip.incomplete_field_of_view.balanced_accuracy": [
+      0.4650386601625086,
+      0.49444444444444446
+     ]
+    }
+   }
+  }
+ }
+}
