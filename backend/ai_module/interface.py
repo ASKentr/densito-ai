@@ -24,6 +24,7 @@ class AIFinding:
 class AIImageReport:
     image_index: int
     quality_score: float          # 0..100, по этому изображению
+    anatomical_region: str = ""   # "spine" | "hip" | "" (не удалось определить)
     metrics: dict = field(default_factory=dict)  # сырые метрики для отладки/аудита
 
 

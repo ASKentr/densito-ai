@@ -1,0 +1,82 @@
+{
+ "spine.incorrect_positioning": {
+  "model": {
+   "point": 0.5156537753222836,
+   "ci_low": 0.32093189964157703,
+   "ci_high": 0.8097110494400699,
+   "n_studies": 99,
+   "valid_resamples": 1997
+  },
+  "heuristic": {
+   "point": 0.4673112338858195,
+   "ci_low": 0.24864188919888403,
+   "ci_high": 0.6422630514351763,
+   "n_studies": 99,
+   "valid_resamples": 1997
+  }
+ },
+ "spine.axis_misaligned": {
+  "model": {
+   "point": 0.5317135549872123,
+   "ci_low": 0.3452325651544402,
+   "ci_high": 0.6772741780964969,
+   "n_studies": 99,
+   "valid_resamples": 2000
+  },
+  "heuristic": {
+   "point": 0.7774936061381074,
+   "ci_low": 0.6288440932492855,
+   "ci_high": 0.8812163328729282,
+   "n_studies": 99,
+   "valid_resamples": 2000
+  }
+ },
+ "spine.artifact": {
+  "model": {
+   "point": 0.598132427843803,
+   "ci_low": 0.4111714979070495,
+   "ci_high": 0.8658876213091056,
+   "n_studies": 99,
+   "valid_resamples": 2000
+  },
+  "heuristic": {
+   "point": 0.5018675721561969,
+   "ci_low": 0.4577910645692336,
+   "ci_high": 0.5685408710674668,
+   "n_studies": 99,
+   "valid_resamples": 2000
+  }
+ },
+ "hip.incorrect_positioning": {
+  "model": {
+   "point": 0.8502684430304236,
+   "ci_low": 0.7418247455280546,
+   "ci_high": 0.9319413759152332,
+   "n_studies": 66,
+   "valid_resamples": 2000
+  },
+  "heuristic": {
+   "point": 0.5470272419964207,
+   "ci_low": 0.39031290347079817,
+   "ci_high": 0.6867571004838602,
+   "n_studies": 66,
+   "valid_resamples": 2000
+  }
+ },
+ "hip.incomplete_field_of_view": {
+  "model": {
+   "point": 0.49640287769784175,
+   "ci_low": 0.3640668501519322,
+   "ci_high": 0.6038076923076923,
+   "n_studies": 71,
+   "valid_resamples": 1243
+  },
+  "heuristic": {
+   "point": 0.5845323741007195,
+   "ci_low": 0.44599558742415885,
+   "ci_high": 0.7043863050793985,
+   "n_studies": 71,
+   "valid_resamples": 1243
+  }
+ }
+}

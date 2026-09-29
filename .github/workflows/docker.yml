@@ -1,0 +1,68 @@
+# Проверка контейнеризированного решения на чистой Linux-машине — так, как его
+# будут запускать эксперты (ТЗ п.3.2, 7.2): сборка и запуск ./run.sh up, ответ
+# API и веб-интерфейса, пакетная обработка ./run.sh batch (с отчётами DICOM SR)
+# и через REST API. Результат сверяется с эталоном, полученным на Windows.
+name: Docker — сборка и пакетная обработка
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Версии Docker
+        run: docker version && docker compose version
+
+      - name: Сборка и запуск (./run.sh up)
+        run: ./run.sh up
+
+      - name: API отвечает, ИИ-модуль готов (/health)
+        run: |
+          for i in $(seq 1 90); do
+            if curl -fsS http://localhost:8000/health -o health.json; then break; fi
+            sleep 2
+          done
+          cat health.json; echo
+          # веса нейросети и моделей позвоночника загружены внутри образа
+          python3 -c "import json,sys; d=json.load(open('health.json')); sys.exit(0 if d['ai']['ready'] else 'ИИ-модуль не готов')"
+
+      - name: Веб-интерфейс отдаётся
+        run: curl -fsS http://localhost:5173/ | grep -q '<div id="root">'
+
+      - name: Пакетная обработка (./run.sh batch --sr)
+        run: |
+          mkdir -p out
+          ./run.sh batch sample_data/studies out/results.csv --sr
+          cat out/results.csv
+          python3 .github/ci/compare_results.py out/results.csv out/sr
+
+      - name: Пакетная обработка через REST API (POST /batch)
+        run: |
+          TOKEN=$(curl -fsS -X POST http://localhost:8000/auth/login \
+                  -d "username=expert&password=expert12345" | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+          curl -fsS -X POST "http://localhost:8000/batch?format=xlsx&sr=true" \
+               -H "Authorization: Bearer $TOKEN" -F "file=@sample_data/studies/studies_bundle.zip" \
+               -D out/api_headers.txt -o out/api_results.zip
+          cat out/api_headers.txt
+          python3 -c "import zipfile; n = zipfile.ZipFile('out/api_results.zip').namelist(); print(n); assert 'densito_results.xlsx' in n and any(x.startswith('sr/') for x in n)"
+
+      - name: Журналы контейнеров
+        if: always()
+        run: docker compose logs --tail=300
+
+      - name: Сохранить результаты
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: batch-results
+          path: out/
+
+      - name: Остановка
+        if: always()
+        run: docker compose down -v

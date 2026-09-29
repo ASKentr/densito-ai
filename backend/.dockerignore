@@ -1,0 +1,7 @@
+# локальная БД и загруженные исследования — в образ не нужны (в compose это тома)
+data
+storage
+__pycache__
+**/__pycache__
+.pytest_cache
+*.log

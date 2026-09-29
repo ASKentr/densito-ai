@@ -1,0 +1,41 @@
+{
+ "n": 193,
+ "n_studies": 99,
+ "lambda": 0.01,
+ "cv_repeats": 20,
+ "pipeline": {
+  "quality_class_f1_cv": 0.5315020924061493,
+  "axis_f1_tilt_gt_5deg": 0.40625,
+  "macro_f1_over_3_spine_types_cv": 0.3950624036533298,
+  "prevalence_any": 0.36787564766839376
+ },
+ "scorers": {
+  "pos": {
+   "n_positive": 12,
+   "cv_auc_mean": 0.6085865561694291,
+   "cv_auc_bootstrap95": [
+    0.3300570118725755,
+    0.8799016393442622
+   ],
+   "cv_f1_mean": 0.3496817906675477
+  },
+  "art": {
+   "n_positive": 38,
+   "cv_auc_mean": 0.6552971137521222,
+   "cv_auc_bootstrap95": [
+    0.49103012541753327,
+    0.8787940192962086
+   ],
+   "cv_f1_mean": 0.4292554202924418
+  },
+  "any": {
+   "n_positive": 71,
+   "cv_auc_mean": 0.6430327868852459,
+   "cv_auc_bootstrap95": [
+    0.521060662022683,
+    0.8074291644003014
+   ],
+   "cv_f1_mean": null
+  }
+ }
+}

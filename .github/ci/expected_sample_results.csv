@@ -1,0 +1,10 @@
+file,anatomical_region,quality_class,quality_prob,violation_type,processing_status
+01_lspine_ok.dcm,Поясничный отдел позвоночника,0,0.2348,,Success
+02_hip_ok.dcm,Проксимальный отдел бедра,1,0.8566,Некорректная укладка,Success
+03_lspine_blur.dcm,Поясничный отдел позвоночника,0,0.2348,,Success
+04_lspine_underexposed.dcm,Поясничный отдел позвоночника,0,0.2348,,Success
+05_hip_cropped.dcm,Проксимальный отдел бедра,1,0.9799,Некорректная укладка;Некорректная область интереса,Success
+06_lspine_misaligned.dcm,Поясничный отдел позвоночника,1,0.9756,Некорректная укладка;Не выравнена ось позвоночника,Success
+07_hip_artifact.dcm,Проксимальный отдел бедра,1,0.8331,Некорректная укладка,Success
+08_lspine_missing_tags.dcm,,,,,Failure
+09_hip_phi_leak.dcm,Проксимальный отдел бедра,1,0.8197,Некорректная укладка,Success

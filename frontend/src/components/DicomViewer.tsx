@@ -182,8 +182,8 @@ export function DicomViewer({ studyId, imageId, findings, drawMode, onRegionDraw
       ctx.strokeRect(x, y, w, h);
       ctx.setLineDash([]);
 
-      const label = `${f.source === "ai" ? "AI" : "Эксперт"}: ${f.violation_name}`;
-      ctx.font = "12px system-ui, sans-serif";
+      const label = `${f.source === "ai" ? "ИИ" : "Эксперт"}: ${f.violation_name}`;
+      ctx.font = "500 12px 'IBM Plex Sans', system-ui, sans-serif";
       const textW = ctx.measureText(label).width;
       ctx.fillStyle = color;
       ctx.fillRect(x, Math.max(0, y - 18), textW + 8, 18);
@@ -305,7 +305,7 @@ export function DicomViewer({ studyId, imageId, findings, drawMode, onRegionDraw
                  max={dataRef.current ? (dataRef.current.maxVal - dataRef.current.minVal) * 1.5 : 100}
                  value={ww} onChange={(e) => setWw(Number(e.target.value))} />
         </label>
-        <button type="button" onClick={resetView}>Сбросить вид</button>
+        <button type="button" onClick={resetView}>Вписать снимок</button>
         {drawMode && <span className="draw-hint">Выделите область на снимке зажатой левой кнопкой мыши</span>}
       </div>
       <div className="dicom-canvas-container" ref={containerRef}>
@@ -320,6 +320,12 @@ export function DicomViewer({ studyId, imageId, findings, drawMode, onRegionDraw
           onMouseLeave={handleMouseUp}
           style={{ cursor: drawMode ? "crosshair" : "grab" }}
         />
+      </div>
+      <div className="viewer-legend">
+        <span><i style={{ borderColor: "#d6dee8" }} /> Находка ИИ</span>
+        <span><i style={{ borderColor: "#d6dee8", borderTopStyle: "dashed" }} /> Находка эксперта</span>
+        <span>Цвет рамки — критичность: жёлтый → красный</span>
+        <span>Колесо мыши — масштаб, перетаскивание — сдвиг</span>
       </div>
     </div>
   );

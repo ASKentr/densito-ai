@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { addExpertFinding, reviewFinding } from "../api/client";
 import type { FindingOut, Severity, ViolationType } from "../api/types";
+import { Icon } from "./ui";
 
 const SEVERITY_LABELS: Record<Severity, string> = { low: "Низкая", medium: "Средняя", high: "Высокая", critical: "Критическая" };
 const STATUS_LABELS: Record<string, string> = {
-  pending: "Ожидает проверки", confirmed: "Подтверждено экспертом", rejected: "Отклонено экспертом",
+  pending: "Ожидает проверки", confirmed: "Подтверждено", rejected: "Отклонено",
   modified: "Изменено экспертом", added: "Добавлено экспертом",
 };
 
@@ -14,13 +15,14 @@ interface Props {
   findings: FindingOut[];
   violationTypes: ViolationType[];
   pendingBbox: { x: number; y: number; w: number; h: number } | null;
+  analyzed: boolean;
   onRequestDraw: () => void;
   onBboxConsumed: () => void;
   onChanged: () => void;
 }
 
 export function FindingsPanel({
-  studyId, imageId, findings, violationTypes, pendingBbox, onRequestDraw, onBboxConsumed, onChanged,
+  studyId, imageId, findings, violationTypes, pendingBbox, analyzed, onRequestDraw, onBboxConsumed, onChanged,
 }: Props) {
   const [newVtId, setNewVtId] = useState<number | "">("");
   const [newSeverity, setNewSeverity] = useState<Severity>("medium");
@@ -67,26 +69,38 @@ export function FindingsPanel({
 
   return (
     <div className="findings-panel">
-      <h3>Результат AI и экспертная проверка</h3>
-      {findings.length === 0 && <p className="muted">Нарушений не найдено (или анализ ещё не запускался).</p>}
+      <div className="panel-head">
+        <h3>Находки ИИ и эксперта</h3>
+        <span className="count-pill">{findings.length}</span>
+      </div>
+
+      {findings.length === 0 && (
+        analyzed
+          ? <div className="finding-empty"><Icon name="check" /> Нарушений на этом снимке не найдено</div>
+          : <p className="muted">ИИ-анализ ещё не запускался.</p>
+      )}
+
       <ul className="findings-list">
         {findings.map((f) => (
-          <li key={f.id} className={`finding-item severity-${f.severity}`}>
+          <li key={f.id} className={`finding-item severity-${f.severity}${f.status === "rejected" ? " is-rejected" : ""}`}>
             <div className="finding-head">
               <strong>{f.violation_name}</strong>
-              <span className={`badge source-${f.source}`}>{f.source === "ai" ? "AI" : "Эксперт"}</span>
+              <span className={`badge plain source-${f.source}`}>{f.source === "ai" ? "ИИ" : "Эксперт"}</span>
             </div>
             <div className="finding-meta">
-              Критичность: {SEVERITY_LABELS[f.severity]}
-              {f.confidence != null && <> · Уверенность AI: {(f.confidence * 100).toFixed(0)}%</>}
-              {" · "}{STATUS_LABELS[f.status]}
-              {f.reviewed_by && <> ({f.reviewed_by})</>}
+              <span>Критичность: <b>{SEVERITY_LABELS[f.severity]}</b></span>
+              {f.confidence != null && <span>Уверенность: <b>{(f.confidence * 100).toFixed(0)}%</b></span>}
+              <span>{STATUS_LABELS[f.status]}{f.reviewed_by && <> · {f.reviewed_by}</>}</span>
             </div>
             {f.comment && <div className="finding-comment">{f.comment}</div>}
             {f.source === "ai" && f.status === "pending" && (
               <div className="finding-actions">
-                <button type="button" disabled={busy} onClick={() => act(f.id, "confirm")}>Подтвердить</button>
-                <button type="button" disabled={busy} onClick={() => act(f.id, "reject")}>Отклонить</button>
+                <button type="button" className="btn-sm btn-ok" disabled={busy} onClick={() => act(f.id, "confirm")}>
+                  <Icon name="check" size={14} /> Подтвердить
+                </button>
+                <button type="button" className="btn-sm btn-bad" disabled={busy} onClick={() => act(f.id, "reject")}>
+                  <Icon name="x" size={14} /> Отклонить
+                </button>
                 <select disabled={busy} defaultValue="" onChange={(e) => e.target.value && modify(f.id, Number(e.target.value))}>
                   <option value="" disabled>Изменить категорию…</option>
                   {violationTypes.map((vt) => <option key={vt.id} value={vt.id}>{vt.name_ru}</option>)}
@@ -100,10 +114,12 @@ export function FindingsPanel({
       <div className="add-finding-block">
         <h4>Добавить собственную находку</h4>
         {!pendingBbox ? (
-          <button type="button" onClick={onRequestDraw} disabled={!imageId}>Выделить область на снимке</button>
+          <button type="button" onClick={onRequestDraw} disabled={!imageId}>
+            <Icon name="square" /> Выделить область на снимке
+          </button>
         ) : (
           <form onSubmit={submitNewFinding} className="add-finding-form">
-            <div className="muted">Область выделена. Заполните категорию и сохраните.</div>
+            <div className="muted small">Область выделена. Выберите категорию и сохраните.</div>
             <select value={newVtId} onChange={(e) => setNewVtId(e.target.value ? Number(e.target.value) : "")} required>
               <option value="" disabled>Категория нарушения…</option>
               {violationTypes.filter((v) => v.is_active).map((vt) => <option key={vt.id} value={vt.id}>{vt.name_ru}</option>)}
@@ -113,8 +129,8 @@ export function FindingsPanel({
             </select>
             <textarea placeholder="Комментарий" value={newComment} onChange={(e) => setNewComment(e.target.value)} />
             <div className="finding-actions">
-              <button type="submit" disabled={busy || !newVtId}>Сохранить находку</button>
-              <button type="button" onClick={onBboxConsumed}>Отменить</button>
+              <button type="submit" className="btn-primary" disabled={busy || !newVtId}>Сохранить находку</button>
+              <button type="button" className="btn-ghost" onClick={onBboxConsumed}>Отменить</button>
             </div>
           </form>
         )}

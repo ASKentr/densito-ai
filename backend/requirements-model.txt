@@ -1,0 +1,10 @@
+# Дополнительные зависимости для CNN-модели (шаг 4 плана переделки,
+# docs/ПЛАН_ПЕРЕДЕЛКИ.md) — обучение (model_train.py) и гибридный инференс
+# (hybrid.py). Не включены в backend/requirements.txt: сама веб-часть и
+# heuristics.py (текущая продакшн-реализация analyze_study) работают без
+# них. Ставить, только если команда решит подключить hybrid.py вместо
+# чистых эвристик.
+-r requirements.txt
+torch==2.14.0+cpu
+torchvision==0.29.0+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu

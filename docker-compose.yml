@@ -1,25 +1,34 @@
+# Параметры берутся из окружения / файла .env рядом с этим файлом (его создаёт
+# ./run.sh при первом запуске). Значения по умолчанию — для локальной
+# демонстрации; для стенда, доступного извне, обязательно смените пароли и
+# SECRET_KEY (см. docs/РАЗВЁРТЫВАНИЕ.md).
 services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - backend_data:/app/data
       - backend_storage:/app/storage
     environment:
-      SECRET_KEY: "change-me-in-production"
-      BOOTSTRAP_ADMIN_PASSWORD: "admin12345"
-      BOOTSTRAP_EXPERT_PASSWORD: "expert12345"
+      SECRET_KEY: "${SECRET_KEY:-change-me-in-production}"
+      BOOTSTRAP_ADMIN_PASSWORD: "${BOOTSTRAP_ADMIN_PASSWORD:-admin12345}"
+      BOOTSTRAP_EXPERT_PASSWORD: "${BOOTSTRAP_EXPERT_PASSWORD:-expert12345}"
+      # адреса, с которых открывают веб-интерфейс (JSON-список)
+      CORS_ORIGINS: '${CORS_ORIGINS:-["http://localhost:5173","http://127.0.0.1:5173"]}'
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_API_BASE: "http://localhost:8000"
+        # адрес backend, как его видит БРАУЗЕР пользователя (вшивается при сборке)
+        VITE_API_BASE: "${API_PUBLIC_URL:-http://localhost:8000}"
     ports:
-      - "5173:80"
+      - "${FRONTEND_PORT:-5173}:80"
     depends_on:
       - backend
+    restart: unless-stopped
 
 volumes:
   backend_data:

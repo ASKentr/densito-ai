@@ -123,6 +123,12 @@ class StudyImage(SQLModel, table=True):
     columns: Optional[int] = None
     frame_index: int = 0
 
+    # заполняются AI-анализом (шаг 6 плана переделки, docs/ПЛАН_ПЕРЕДЕЛКИ.md):
+    # anatomical_region — официальное значение (submission_mapping.py, шаг 3),
+    # quality_prob — вероятность нарушения [0;1] (ai_module/quality_prob.py).
+    anatomical_region: Optional[str] = None
+    quality_prob: Optional[float] = None
+
     study: Study = Relationship(back_populates="images")
 
 

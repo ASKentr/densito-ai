@@ -100,6 +100,50 @@ export async function fetchImageRawArrayBuffer(studyId: number, imageId: number)
   return data;
 }
 
+function saveBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function filenameFrom(disposition: unknown, fallback: string): string {
+  if (typeof disposition !== "string") return fallback;
+  return disposition.match(/filename="([^"]+)"/)?.[1] ?? fallback;
+}
+
+/** Отчёт DICOM SR по снимку (ТЗ п.2.6) — скачивается файлом .sr.dcm. */
+export async function downloadImageSr(studyId: number, imageId: number): Promise<void> {
+  const res = await client.get(`/studies/${studyId}/images/${imageId}/sr`, { responseType: "blob" });
+  saveBlob(res.data, filenameFrom(res.headers["content-disposition"], `study${studyId}_image${imageId}.sr.dcm`));
+}
+
+export interface BatchResult { processed: number; failed: number; filename: string }
+
+/** Пакетная обработка (POST /batch): таблица xlsx/csv или zip с таблицей и SR. */
+export async function runBatch(file: File, format: "xlsx" | "csv", sr: boolean,
+                               onProgress?: (pct: number) => void): Promise<BatchResult> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await client.post("/batch", form, {
+    params: { format, sr },
+    responseType: "blob",
+    headers: { "Content-Type": "multipart/form-data" },
+    onUploadProgress: (evt) => {
+      if (onProgress && evt.total) onProgress(Math.round((evt.loaded / evt.total) * 100));
+    },
+  });
+  const filename = filenameFrom(res.headers["content-disposition"], sr ? "densito_results.zip" : `densito_results.${format}`);
+  saveBlob(res.data, filename);
+  return {
+    processed: Number(res.headers["x-processed-files"] ?? 0),
+    failed: Number(res.headers["x-failed-files"] ?? 0),
+    filename,
+  };
+}
+
 export async function reviewFinding(
   findingId: number,
   action: "confirm" | "reject" | "modify",

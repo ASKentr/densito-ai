@@ -99,6 +99,8 @@ class ImageOut(BaseModel):
     rows: Optional[int]
     columns: Optional[int]
     frame_index: int
+    anatomical_region: Optional[str] = None
+    quality_prob: Optional[float] = None
 
 
 class StudyListItem(BaseModel):

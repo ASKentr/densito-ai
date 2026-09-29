@@ -4,6 +4,7 @@ import { Layout } from "./components/Layout";
 import { AdminStatsPage } from "./pages/AdminStatsPage";
 import { AdminUsersPage } from "./pages/AdminUsersPage";
 import { AdminViolationsPage } from "./pages/AdminViolationsPage";
+import { BatchPage } from "./pages/BatchPage";
 import { LoginPage } from "./pages/LoginPage";
 import { StudiesListPage } from "./pages/StudiesListPage";
 import { StudyCardPage } from "./pages/StudyCardPage";
@@ -23,6 +24,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="/studies" element={<StudiesListPage />} />
         <Route path="/studies/:id" element={<StudyCardPage />} />
+        <Route path="/batch" element={<BatchPage />} />
         <Route path="/admin/violations" element={<ProtectedRoute adminOnly><AdminViolationsPage /></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute adminOnly><AdminUsersPage /></ProtectedRoute>} />
         <Route path="/admin/stats" element={<ProtectedRoute adminOnly><AdminStatsPage /></ProtectedRoute>} />

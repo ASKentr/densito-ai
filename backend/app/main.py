@@ -6,7 +6,7 @@ from ai_module.violation_catalog import DEFAULT_VIOLATION_TYPES
 from app.config import settings
 from app.database import engine, init_db
 from app.models import Role, User, ViolationType
-from app.routers import admin, auth, findings, studies
+from app.routers import admin, auth, batch, findings, studies
 from app.security import hash_password
 
 app = FastAPI(title=settings.app_name, description=(
@@ -20,12 +20,15 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # веб-интерфейс читает имя файла и счётчики пакетной обработки из ответа
+    expose_headers=["Content-Disposition", "X-Processed-Files", "X-Failed-Files"],
 )
 
 app.include_router(auth.router)
 app.include_router(studies.router)
 app.include_router(findings.router)
 app.include_router(admin.router)
+app.include_router(batch.router)
 
 
 def _seed():
@@ -55,8 +58,17 @@ def _seed():
 def on_startup():
     init_db()
     _seed()
+    # прогрев: веса нейросети загружаются при старте, а не при первом анализе
+    from ai_module.status import engine_status
+    engine_status()
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": settings.app_name}
+    """Сервер жив + самопроверка ИИ-модуля (ai_module/status.py). Без авторизации:
+    его опрашивает индикатор в шапке веб-интерфейса и проверка сборки в CI.
+    status = "ok" — можно анализировать, "degraded" — сервер работает, ИИ-модуль нет."""
+    from ai_module.status import engine_status
+
+    ai = engine_status()
+    return {"status": "ok" if ai["ready"] else "degraded", "service": settings.app_name, "ai": ai}

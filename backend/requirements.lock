@@ -1,0 +1,60 @@
+# Полный набор зависимостей backend с точными версиями, включая транзитивные
+# (ТЗ п.3.2: все зависимости должны быть зафиксированы). Используется как
+# constraints-файл: pip install -r requirements-model.txt -c requirements.lock
+#
+# Получено 2026-09-25 разрешением requirements-model.txt под целевую платформу
+# образа (Linux x86_64, CPython 3.11, только бинарные колёса):
+#   pip install --dry-run --ignore-installed --report report.json #     --platform manylinux_2_28_x86_64 --platform manylinux2014_x86_64 #     --platform manylinux_2_17_x86_64 --python-version 3.11 --implementation cp #     --only-binary=:all: -r requirements-model.txt
+# pip вычисляет маркеры платформы по машине, где запущен (была Windows), поэтому
+# вручную: убран colorama (только win32), добавлен uvloop (uvicorn[standard] на Linux).
+# При изменении requirements*.txt — пересобрать этот файл той же командой.
+annotated-types==0.8.0
+anyio==4.15.1
+bcrypt==4.0.1
+cffi==2.1.1
+click==8.5.0
+cryptography==50.0.1
+ecdsa==0.19.2
+et_xmlfile==2.0.0
+fastapi==0.115.0
+filelock==4.0.3
+fsspec==2026.9.0
+greenlet==3.5.6
+h11==0.16.0
+httptools==0.8.0
+idna==3.20
+jinja2==3.1.6
+markupsafe==3.0.3
+mpmath==1.3.0
+networkx==3.6.1
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+openpyxl==3.1.5
+passlib==1.7.4
+pillow==10.4.0
+pyasn1==0.6.4
+pycparser==3.0
+pydantic==2.13.5
+pydantic-settings==2.5.2
+pydantic_core==2.46.5
+pydicom==2.4.4
+python-dotenv==1.2.3
+python-jose==3.3.0
+python-multipart==0.0.9
+pyyaml==6.0.3
+rsa==4.9.1
+scipy==1.13.1
+setuptools==84.0.0
+six==1.17.0
+sqlalchemy==2.0.54
+sqlmodel==0.0.22
+starlette==0.38.6
+sympy==1.14.0
+torch==2.14.0+cpu
+torchvision==0.29.0+cpu
+typing-inspection==0.4.4
+typing_extensions==4.16.0
+uvicorn==0.30.6
+uvloop==0.22.1
+watchfiles==1.3.0
+websockets==17.1

@@ -1,0 +1,7 @@
+# node_modules ставится внутри образа (npm ci): хостовые содержат нативные
+# модули под ОС хоста (напр. @rolldown/binding-win32-*) и при COPY . . затёрли
+# бы линуксовые — сборка vite падает с "Cannot find native binding".
+node_modules
+dist
+.vite
+*.log

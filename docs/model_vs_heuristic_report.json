@@ -1,0 +1,32 @@
+{
+ "spine.incorrect_positioning": {
+  "n": 193,
+  "n_positive": 12,
+  "model_auc": 0.5156537753222836,
+  "heuristic_auc": 0.4673112338858195
+ },
+ "spine.axis_misaligned": {
+  "n": 193,
+  "n_positive": 23,
+  "model_auc": 0.5317135549872123,
+  "heuristic_auc": 0.7774936061381074
+ },
+ "spine.artifact": {
+  "n": 193,
+  "n_positive": 38,
+  "model_auc": 0.598132427843803,
+  "heuristic_auc": 0.5018675721561969
+ },
+ "hip.incorrect_positioning": {
+  "n": 261,
+  "n_positive": 47,
+  "model_auc": 0.8502684430304236,
+  "heuristic_auc": 0.5470272419964207
+ },
+ "hip.incomplete_field_of_view": {
+  "n": 279,
+  "n_positive": 1,
+  "model_auc": 0.49640287769784175,
+  "heuristic_auc": 0.5845323741007195
+ }
+}

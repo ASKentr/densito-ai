@@ -1,0 +1,12 @@
+# Скрипты для Linux должны храниться с LF — с CRLF bash на Linux их не запустит
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+requirements*.txt text eol=lf
+requirements.lock text eol=lf
+
+# Бинарные файлы — без преобразований
+*.pt binary
+*.dcm binary
+*.zip binary
+*.xlsx binary

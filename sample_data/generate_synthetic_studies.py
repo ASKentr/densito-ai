@@ -81,14 +81,17 @@ def _draw_hip(canvas: np.ndarray, cx: float, cy: float, scale: float = 1.0,
     yy, xx = np.mgrid[0:rows, 0:cols]
     # головка бедра (эллипс)
     head = (((xx - cx) / (55 * scale)) ** 2 + ((yy - cy) / (55 * scale)) ** 2) <= 1
-    # шейка бедра (наклонная полоса)
-    neck_len = 110 * scale
+    # диафиз бедра (наклонная полоса) — тоньше и длиннее головки, как у настоящей
+    # кости (иначе фигура получается почти билатерально симметричной и
+    # heuristics.classify_anatomical_region путает её с позвоночником, см.
+    # docs/ПЛАН_ПЕРЕДЕЛКИ.md, шаг 1/4 — тест test_ai_module.py это отловил).
+    neck_len = 260 * scale
     ang = np.deg2rad(35)
     nx, ny = cx + np.cos(ang) * np.arange(0, neck_len), cy + np.sin(ang) * np.arange(0, neck_len)
     neck_mask = np.zeros((rows, cols), dtype=bool)
     for px, py in zip(nx, ny):
         if 0 <= int(py) < rows and 0 <= int(px) < cols:
-            r = int(22 * scale)
+            r = int(14 * scale)
             y0, y1 = max(0, int(py) - r), min(rows, int(py) + r)
             x0, x1 = max(0, int(px) - r), min(cols, int(px) + r)
             neck_mask[y0:y1, x0:x1] = True
@@ -149,7 +152,12 @@ def build_pixels(scenario: Scenario, rows=768, cols=768) -> tuple[np.ndarray, li
     if scenario.body_part == "LSPINE":
         boxes = _draw_spine(canvas, cx, cy - 140, n_vertebrae=4)
     else:
-        boxes = _draw_hip(canvas, cx, cy)
+        # Голова бедра рисуется в точке (cx,cy), но диафиз уходит от неё по
+        # диагонали — bbox всей фигуры (голова+диафиз) иначе оказывается
+        # заметно смещён от центра кадра, хотя в реальных снимках объект
+        # всегда близко к центру (см. docs/ПЛАН_ПЕРЕДЕЛКИ.md, шаг 1/4).
+        # Сдвигаем точку начала так, чтобы центр итогового bbox совпал с cx,cy.
+        boxes = _draw_hip(canvas, cx - 85.5, cy - 53.5)
 
     if "tilt" in scenario.build_kwargs:
         from scipy import ndimage
@@ -252,7 +260,7 @@ def main():
     for idx, sc in enumerate(SCENARIOS, start=1):
         ds, boxes = make_dicom(sc, idx)
         fname = f"{idx:02d}_{sc.key}.dcm"
-        ds.save_as(os.path.join(OUT_DIR, fname), enforce_file_format=True)
+        ds.save_as(os.path.join(OUT_DIR, fname))
         manifest.append({
             "file": fname,
             "title": sc.title_ru,

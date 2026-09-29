@@ -25,6 +25,15 @@ DEFAULT_VIOLATION_TYPES = [
         "is_system": True,
     },
     {
+        "code": "spine_axis_misaligned",
+        "name_ru": "Ось позвоночника не выровнена",
+        "category": "positioning",
+        "description": "Наклон продольной оси позвоночного столба от вертикали превышает "
+                        "допустимые 5° (п.6 ТЗ).",
+        "default_severity": "high",
+        "is_system": True,
+    },
+    {
         "code": "artifact",
         "name_ru": "Артефакты на изображении",
         "category": "artifact",

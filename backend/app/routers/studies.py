@@ -21,7 +21,7 @@ from app.models import (
 )
 from app.schemas import FindingOut, ImageOut, StudyDetail, StudyListItem
 from app.security import get_current_user
-from app.storage import make_display_id, new_study_storage_dir
+from app.storage import make_display_id, new_study_storage_dir, safe_upload_name
 
 router = APIRouter(prefix="/studies", tags=["studies"])
 
@@ -55,13 +55,14 @@ def upload_study(
     user: User = Depends(get_current_user),
 ):
     rel_dir, abs_dir = new_study_storage_dir()
-    upload_path = os.path.join(abs_dir, file.filename or "upload.bin")
+    upload_name = safe_upload_name(file.filename)
+    upload_path = os.path.join(abs_dir, upload_name)
     with open(upload_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
 
     dicom_paths: list[str] = []
     source_kind = "dicom"
-    if (file.filename or "").lower().endswith(".zip") or zipfile.is_zipfile(upload_path):
+    if upload_name.lower().endswith(".zip") or zipfile.is_zipfile(upload_path):
         source_kind = "zip"
         extract_dir = os.path.join(abs_dir, "extracted")
         os.makedirs(extract_dir, exist_ok=True)
@@ -202,7 +203,8 @@ def get_study(study_id: int, session: Session = Depends(get_session), user: User
         patient_pseudo_id=study.patient_pseudo_id,
         anonymization_report=study.anonymization_report,
         images=[ImageOut(id=i.id, filename=i.filename, rows=i.rows, columns=i.columns,
-                          frame_index=i.frame_index) for i in images],
+                          frame_index=i.frame_index, anatomical_region=i.anatomical_region,
+                          quality_prob=i.quality_prob) for i in images],
         findings=findings_out,
         model_version=analysis.model_version if analysis else None,
     )
@@ -229,10 +231,62 @@ def get_image_raw(study_id: int, image_id: int, session: Session = Depends(get_s
                          filename=image.filename)
 
 
+_FINDING_STATUS_RU = {
+    FindingStatus.pending: "не проверено экспертом",
+    FindingStatus.confirmed: "подтверждено экспертом",
+    FindingStatus.modified: "изменено экспертом",
+    FindingStatus.added: "добавлено экспертом",
+}
+_REVIEW_STATUS_RU = {
+    ReviewStatus.not_reviewed: "Экспертная проверка не проводилась",
+    ReviewStatus.in_review: "На экспертной проверке",
+    ReviewStatus.reviewed: "Проверено экспертом",
+}
+
+
+@router.get("/{study_id}/images/{image_id}/sr",
+            summary="Текстовый отчёт о нарушениях в формате DICOM SR (ТЗ п.2.6)")
+def get_image_sr(study_id: int, image_id: int, session: Session = Depends(get_session),
+                 user: User = Depends(get_current_user)):
+    """Basic Text SR по текущему состоянию карточки: находки ИИ (кроме отклонённых
+    экспертом) и находки, добавленные экспертом, со статусом проверки."""
+    from ai_module.dicom_sr import SRContent, SRFinding, build_sr, sr_bytes
+
+    image = session.get(StudyImage, image_id)
+    if not image or image.study_id != study_id:
+        raise HTTPException(404, "Изображение не найдено")
+    study = session.get(Study, study_id)
+    if not study.analysis:
+        raise HTTPException(409, "Исследование ещё не проанализировано")
+
+    vtypes = {vt.id: vt for vt in session.exec(select(ViolationType)).all()}
+    findings = session.exec(select(Finding).where(
+        Finding.image_id == image_id, Finding.status != FindingStatus.rejected).order_by(Finding.id)).all()
+    sr_findings = []
+    for f in findings:
+        detail = f.comment.strip()
+        status = _FINDING_STATUS_RU.get(f.status, "")
+        sr_findings.append(SRFinding(vtypes[f.violation_type_id].name_ru,
+                                     f"{detail} ({status})" if detail else f"({status})"))
+
+    ds = read_dicom(image.storage_path)
+    content = SRContent(
+        region=image.anatomical_region or "", quality_class=1 if sr_findings else 0,
+        quality_prob=image.quality_prob, model_version=study.analysis.model_version,
+        findings=sr_findings, review_status=_REVIEW_STATUS_RU.get(study.review_status, ""),
+    )
+    log_action(session, user, "export_sr", entity="study", entity_id=study_id, details=f"image={image_id}")
+    # имя файла — только ASCII (заголовки HTTP в latin-1; исходное имя может быть кириллическим)
+    return Response(content=sr_bytes(build_sr(ds, content)), media_type="application/dicom",
+                    headers={"Content-Disposition": f'attachment; filename="{study.display_id}_image{image_id}.sr.dcm"'})
+
+
 @router.post("/{study_id}/analyze", response_model=StudyDetail)
 def analyze_study_endpoint(study_id: int, session: Session = Depends(get_session),
                             user: User = Depends(get_current_user)):
-    from ai_module.heuristics import analyze_study as run_ai
+    # Гибрид: эвристики + CNN для укладки бедра (docs/ГИБРИД_МОДЕЛЬ.md).
+    # Откат на чистые эвристики — импорт из ai_module.heuristics.
+    from ai_module.hybrid import analyze_study as run_ai
 
     study = session.get(Study, study_id)
     if not study:
@@ -266,6 +320,21 @@ def analyze_study_endpoint(study_id: int, session: Session = Depends(get_session
         session.add(study)
         session.commit()
         raise HTTPException(500, f"Ошибка AI-анализа: {exc}")
+
+    # anatomical_region / quality_prob — на карточку изображения (шаг 6 плана
+    # переделки): та же логика, что в batch_predict.py (ai_module/quality_prob.py),
+    # чтобы веб-интерфейс и выгружаемая таблица не расходились в цифрах.
+    from ai_module.quality_prob import compute_quality_prob
+    from ai_module.submission_mapping import map_anatomical_region
+
+    for idx, image in enumerate(images):
+        report = result.image_reports[idx] if idx < len(result.image_reports) else None
+        if report is None:
+            continue
+        image_findings = [f for f in result.findings if f.image_index == idx]
+        image.anatomical_region = map_anatomical_region(report.anatomical_region)
+        image.quality_prob = round(compute_quality_prob(report.anatomical_region, report.metrics, image_findings), 4)
+        session.add(image)
 
     vtype_by_code = {vt.code: vt for vt in session.exec(select(ViolationType)).all()}
     for f in result.findings:

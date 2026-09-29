@@ -50,6 +50,8 @@ export interface ImageOut {
   rows: number | null;
   columns: number | null;
   frame_index: number;
+  anatomical_region: string | null;
+  quality_prob: number | null;
 }
 
 export interface StudyListItem {
